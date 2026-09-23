@@ -76,8 +76,8 @@ jobs:
                 applicationId "com.example.universalplayer"
                 minSdk 26
                 targetSdk 34
-                versionCode 15
-                versionName "15.0"
+                versionCode 16
+                versionName "16.0"
             }
 
             buildTypes {
@@ -156,18 +156,53 @@ jobs:
                 android:padding="16dp"
                 android:gravity="center_vertical">
                 <TextView
+                    android:id="@+id/txtHeaderTitle"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Video"
+                    android:text="Video Manager"
                     android:textColor="#FFFFFF"
-                    android:textSize="22sp"
+                    android:textSize="20sp"
                     android:textStyle="bold" />
                 <Button
                     android:id="@+id/btnOpenFile"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Open File" />
+                    android:layout_height="36dp"
+                    android:text="Open File"
+                    android:textSize="12sp" />
+                <Button
+                    android:id="@+id/btnRecycleBin"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:layout_marginStart="8dp"
+                    android:text="🗑 Bin"
+                    android:textSize="12sp"
+                    android:backgroundTint="#B71C1C" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingHorizontal="16dp"
+                android:layout_marginBottom="8dp">
+                <Button
+                    android:id="@+id/tabVideos"
+                    android:layout_width="0dp"
+                    android:layout_height="36dp"
+                    android:layout_weight="1"
+                    android:text="Videos"
+                    android:textColor="#00E676"
+                    android:backgroundTint="#262626" />
+                <Button
+                    android:id="@+id/tabFolders"
+                    android:layout_width="0dp"
+                    android:layout_height="36dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:text="Folders"
+                    android:textColor="#FFFFFF"
+                    android:backgroundTint="#1F1F1F" />
             </LinearLayout>
 
             <EditText
@@ -196,12 +231,14 @@ jobs:
         <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="12dp"
+            android:padding="10dp"
             android:gravity="center_vertical"
             android:background="?android:attr/selectableItemBackground">
             <ImageView
-                android:layout_width="44dp"
-                android:layout_height="44dp"
+                android:id="@+id/imgThumb"
+                android:layout_width="52dp"
+                android:layout_height="52dp"
+                android:scaleType="centerCrop"
                 android:src="@android:drawable/ic_media_play"
                 android:tint="#00E676" />
             <LinearLayout
@@ -227,13 +264,21 @@ jobs:
                     android:textSize="13sp"
                     android:layout_marginTop="3dp" />
             </LinearLayout>
+            <Button
+                android:id="@+id/btnItemMenu"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:text="⋮"
+                android:textSize="16sp"
+                android:textColor="#FFF"
+                android:backgroundTint="#262626"
+                android:padding="0dp" />
         </LinearLayout>
         EOF
 
         cat << 'EOF' > app/src/main/res/layout/activity_player.xml
         <?xml version="1.0" encoding="utf-8"?>
         <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:app="http://schemas.android.com/apk/res-auto"
             android:id="@+id/playerRoot"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -247,7 +292,6 @@ jobs:
                 app:surface_type="texture_view"
                 app:resize_mode="fit" />
 
-            <!-- 1. Top Bar: Clock & Battery -->
             <RelativeLayout
                 android:id="@+id/topBar"
                 android:layout_width="match_parent"
@@ -273,7 +317,6 @@ jobs:
                     android:text="🔋 100%" />
             </RelativeLayout>
 
-            <!-- 2. Screen Edges: Lock & Snap -->
             <Button
                 android:id="@+id/btnLock"
                 android:layout_width="40dp"
@@ -287,20 +330,35 @@ jobs:
                 android:backgroundTint="#80000000"
                 android:padding="0dp" />
 
-            <Button
-                android:id="@+id/btnSnapshot"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+            <LinearLayout
+                android:id="@+id/rightControls"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_alignParentEnd="true"
                 android:layout_centerVertical="true"
                 android:layout_marginEnd="8dp"
-                android:text="📸"
-                android:textSize="15sp"
-                android:textColor="#FFFFFF"
-                android:backgroundTint="#80000000"
-                android:padding="0dp" />
+                android:orientation="vertical">
+                <Button
+                    android:id="@+id/btnSnapshot"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:text="📸"
+                    android:textSize="15sp"
+                    android:textColor="#FFFFFF"
+                    android:backgroundTint="#80000000"
+                    android:padding="0dp" />
+                <Button
+                    android:id="@+id/btnPiP"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginTop="10dp"
+                    android:text="⧉"
+                    android:textSize="15sp"
+                    android:textColor="#FFFFFF"
+                    android:backgroundTint="#80000000"
+                    android:padding="0dp" />
+            </LinearLayout>
 
-            <!-- 3. Bottom Controls: Completely Centered -->
             <LinearLayout
                 android:id="@+id/bottomBar"
                 android:layout_width="match_parent"
@@ -311,7 +369,6 @@ jobs:
                 android:padding="8dp"
                 android:background="#B3000000">
 
-                <!-- Row 1: Seekbar & Time -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -334,7 +391,6 @@ jobs:
                         android:thumbTint="#00E676" />
                 </LinearLayout>
 
-                <!-- Row 2: Centered Prev, Play/Pause, Next -->
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -347,7 +403,6 @@ jobs:
                     <Button android:id="@+id/btnNext" android:layout_width="48dp" android:layout_height="36dp" android:layout_marginStart="14dp" android:text="⏭" android:textSize="17sp" android:textColor="#FFF" android:backgroundTint="#333" android:padding="0dp" />
                 </LinearLayout>
 
-                <!-- Row 3: Centered Speed, Fit, Rotate, Three-Dots -->
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -376,7 +431,15 @@ jobs:
         cat << 'EOF' > app/src/main/java/com/example/universalplayer/VideoItem.kt
         package com.example.universalplayer
         import java.io.Serializable
-        data class VideoItem(val id: Long, val title: String, val duration: String, val uriString: String) : Serializable
+        data class VideoItem(
+            val id: Long,
+            val title: String,
+            val duration: String,
+            val uriString: String,
+            val folder: String = "Internal",
+            val isFolder: Boolean = false,
+            val count: Int = 0
+        ) : Serializable
         EOF
 
         cat << 'EOF' > app/src/main/java/com/example/universalplayer/VideoAdapter.kt
@@ -384,20 +447,31 @@ jobs:
         import android.view.LayoutInflater
         import android.view.View
         import android.view.ViewGroup
+        import android.widget.Button
+        import android.widget.ImageView
         import android.widget.TextView
         import androidx.recyclerview.widget.RecyclerView
 
-        class VideoAdapter(private var list: List<VideoItem>, private val onClick: (Int) -> Unit) : RecyclerView.Adapter<VideoAdapter.VH>() {
+        class VideoAdapter(
+            private var list: List<VideoItem>,
+            private val onClick: (Int) -> Unit,
+            private val onMenu: (View, Int) -> Unit
+        ) : RecyclerView.Adapter<VideoAdapter.VH>() {
             class VH(v: View) : RecyclerView.ViewHolder(v) {
+                val img: ImageView = v.findViewById(R.id.imgThumb)
                 val t: TextView = v.findViewById(R.id.txtTitle)
                 val d: TextView = v.findViewById(R.id.txtDuration)
+                val m: Button = v.findViewById(R.id.btnItemMenu)
             }
             override fun onCreateViewHolder(p: ViewGroup, vt: Int) = VH(LayoutInflater.from(p.context).inflate(R.layout.item_video, p, false))
             override fun onBindViewHolder(h: VH, pos: Int) {
                 val item = list[pos]
                 h.t.text = item.title
-                h.d.text = item.duration
+                h.d.text = if (item.isFolder) "${item.count} Videos" else item.duration
+                h.img.setImageResource(if (item.isFolder) android.R.drawable.ic_dialog_dialer else android.R.drawable.ic_media_play)
+                h.m.visibility = if (item.isFolder) View.GONE else View.VISIBLE
                 h.itemView.setOnClickListener { onClick(pos) }
+                h.m.setOnClickListener { onMenu(it, pos) }
             }
             override fun getItemCount() = list.size
             fun update(newList: List<VideoItem>) { list = newList; notifyDataSetChanged() }
@@ -407,17 +481,16 @@ jobs:
         cat << 'EOF' > app/src/main/java/com/example/universalplayer/MainActivity.kt
         package com.example.universalplayer
         import android.Manifest
-        import android.content.ContentUris
-        import android.content.Intent
+        import android.content.*
         import android.content.pm.PackageManager
-        import android.os.Build
-        import android.os.Bundle
+        import android.os.*
         import android.provider.MediaStore
         import android.text.Editable
         import android.text.TextWatcher
-        import android.widget.Button
-        import android.widget.EditText
+        import android.view.View
+        import android.widget.*
         import androidx.activity.result.contract.ActivityResultContracts
+        import androidx.appcompat.app.AlertDialog
         import androidx.appcompat.app.AppCompatActivity
         import androidx.core.content.ContextCompat
         import androidx.recyclerview.widget.LinearLayoutManager
@@ -428,10 +501,14 @@ jobs:
             private lateinit var rv: RecyclerView
             private lateinit var adapter: VideoAdapter
             private val allVideos = ArrayList<VideoItem>()
+            private val currentDisplayList = ArrayList<VideoItem>()
+            private var isFolderMode = false
+            private var isBinMode = false
+            private lateinit var prefs: SharedPreferences
 
             private val pickVideo = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { res ->
                 if (res.resultCode == RESULT_OK) res.data?.data?.let {
-                    val single = arrayListOf(VideoItem(0, "Custom Video", "00:00", it.toString()))
+                    val single = arrayListOf(VideoItem(0, "Selected Video", "00:00", it.toString()))
                     startActivity(Intent(this, PlayerActivity::class.java).apply {
                         putExtra("VIDEO_LIST", single)
                         putExtra("VIDEO_INDEX", 0)
@@ -445,25 +522,37 @@ jobs:
             override fun onCreate(savedInstanceState: Bundle?) {
                 super.onCreate(savedInstanceState)
                 setContentView(R.layout.activity_main)
+                prefs = getSharedPreferences("RecycleBinPrefs", Context.MODE_PRIVATE)
+
                 rv = findViewById(R.id.recyclerViewVideos)
                 rv.layoutManager = LinearLayoutManager(this)
-                adapter = VideoAdapter(allVideos) { idx ->
-                    startActivity(Intent(this, PlayerActivity::class.java).apply {
-                        putExtra("VIDEO_LIST", allVideos)
-                        putExtra("VIDEO_INDEX", idx)
-                    })
-                }
+                adapter = VideoAdapter(currentDisplayList, { idx -> onItemClicked(idx) }, { v, idx -> showItemMenu(v, idx) })
                 rv.adapter = adapter
 
                 findViewById<Button>(R.id.btnOpenFile).setOnClickListener {
                     val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply { addCategory(Intent.CATEGORY_OPENABLE); type = "*/*" }
                     pickVideo.launch(intent)
                 }
+
+                findViewById<Button>(R.id.tabVideos).setOnClickListener {
+                    isFolderMode = false; isBinMode = false
+                    updateView()
+                }
+                findViewById<Button>(R.id.tabFolders).setOnClickListener {
+                    isFolderMode = true; isBinMode = false
+                    updateView()
+                }
+                findViewById<Button>(R.id.btnRecycleBin).setOnClickListener {
+                    isBinMode = true
+                    updateView()
+                }
+
                 findViewById<EditText>(R.id.etSearchVideos).addTextChangedListener(object : TextWatcher {
                     override fun beforeTextChanged(s: CharSequence?, b: Int, c: Int, a: Int) {}
                     override fun onTextChanged(s: CharSequence?, b: Int, c: Int, a: Int) {
                         val q = s.toString().trim()
-                        adapter.update(if (q.isEmpty()) allVideos else allVideos.filter { it.title.contains(q, true) })
+                        val filtered = currentDisplayList.filter { it.title.contains(q, true) }
+                        adapter.update(if (q.isEmpty()) currentDisplayList else filtered)
                     }
                     override fun afterTextChanged(e: Editable?) {}
                 })
@@ -479,20 +568,118 @@ jobs:
 
             private fun loadVideos() {
                 allVideos.clear()
-                val proj = arrayOf(MediaStore.Video.Media._ID, MediaStore.Video.Media.DISPLAY_NAME, MediaStore.Video.Media.DURATION)
+                val binSet = prefs.getStringSet("bin_items", emptySet()) ?: emptySet()
+                val proj = arrayOf(MediaStore.Video.Media._ID, MediaStore.Video.Media.DISPLAY_NAME, MediaStore.Video.Media.DURATION, MediaStore.Video.Media.BUCKET_DISPLAY_NAME)
                 contentResolver.query(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, proj, null, null, "${MediaStore.Video.Media.DATE_ADDED} DESC")?.use { c ->
                     val idCol = c.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
                     val nameCol = c.getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME)
                     val durCol = c.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)
+                    val bucketCol = c.getColumnIndexOrThrow(MediaStore.Video.Media.BUCKET_DISPLAY_NAME)
                     while (c.moveToNext()) {
                         val id = c.getLong(idCol)
                         val ms = c.getLong(durCol)
                         val dur = String.format("%02d:%02d", TimeUnit.MILLISECONDS.toMinutes(ms), TimeUnit.MILLISECONDS.toSeconds(ms) % 60)
                         val u = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id).toString()
-                        allVideos.add(VideoItem(id, c.getString(nameCol) ?: "Video", dur, u))
+                        val folder = c.getString(bucketCol) ?: "Internal"
+                        allVideos.add(VideoItem(id, c.getString(nameCol) ?: "Video", dur, u, folder))
                     }
                 }
-                adapter.update(allVideos)
+                updateView()
+            }
+
+            private fun updateView() {
+                currentDisplayList.clear()
+                val binSet = prefs.getStringSet("bin_items", emptySet()) ?: emptySet()
+                val titleView = findViewById<TextView>(R.id.txtHeaderTitle)
+
+                if (isBinMode) {
+                    titleView.text = "Recycle Bin"
+                    currentDisplayList.addAll(allVideos.filter { binSet.contains(it.id.toString()) })
+                } else if (isFolderMode) {
+                    titleView.text = "Folders"
+                    val valid = allVideos.filter { !binSet.contains(it.id.toString()) }
+                    val map = valid.groupBy { it.folder }
+                    for ((folder, list) in map) {
+                        currentDisplayList.add(VideoItem(0, folder, "", "", folder, true, list.size))
+                    }
+                } else {
+                    titleView.text = "All Videos"
+                    currentDisplayList.addAll(allVideos.filter { !binSet.contains(it.id.toString()) })
+                }
+                adapter.update(currentDisplayList)
+            }
+
+            private fun onItemClicked(idx: Int) {
+                if (idx !in currentDisplayList.indices) return
+                val item = currentDisplayList[idx]
+                if (item.isFolder) {
+                    val binSet = prefs.getStringSet("bin_items", emptySet()) ?: emptySet()
+                    val folderVideos = ArrayList(allVideos.filter { it.folder == item.title && !binSet.contains(it.id.toString()) })
+                    startActivity(Intent(this, PlayerActivity::class.java).apply {
+                        putExtra("VIDEO_LIST", folderVideos)
+                        putExtra("VIDEO_INDEX", 0)
+                    })
+                } else {
+                    val playList = ArrayList(currentDisplayList.filter { !it.isFolder })
+                    val playIndex = playList.indexOf(item).coerceAtLeast(0)
+                    startActivity(Intent(this, PlayerActivity::class.java).apply {
+                        putExtra("VIDEO_LIST", playList)
+                        putExtra("VIDEO_INDEX", playIndex)
+                    })
+                }
+            }
+
+            private fun showItemMenu(v: View, idx: Int) {
+                if (idx !in currentDisplayList.indices) return
+                val item = currentDisplayList[idx]
+                val p = PopupMenu(this, v)
+                if (isBinMode) {
+                    p.menu.add("Restore")
+                    p.menu.add("Delete Permanently")
+                } else {
+                    p.menu.add("Rename")
+                    p.menu.add("Move to Recycle Bin")
+                    p.menu.add("Delete Permanently")
+                }
+                p.setOnMenuItemClickListener { m ->
+                    when (m.title) {
+                        "Restore" -> {
+                            val binSet = HashSet(prefs.getStringSet("bin_items", emptySet()) ?: emptySet())
+                            binSet.remove(item.id.toString())
+                            prefs.edit().putStringSet("bin_items", binSet).apply()
+                            updateView()
+                        }
+                        "Move to Recycle Bin" -> {
+                            val binSet = HashSet(prefs.getStringSet("bin_items", emptySet()) ?: emptySet())
+                            binSet.add(item.id.toString())
+                            prefs.edit().putStringSet("bin_items", binSet).apply()
+                            updateView()
+                        }
+                        "Delete Permanently" -> {
+                            AlertDialog.Builder(this).setTitle("Delete Permanently?").setMessage("Are you sure?").setPositiveButton("Delete") { _, _ ->
+                                try {
+                                    contentResolver.delete(android.net.Uri.parse(item.uriString), null, null)
+                                    val binSet = HashSet(prefs.getStringSet("bin_items", emptySet()) ?: emptySet())
+                                    binSet.remove(item.id.toString())
+                                    prefs.edit().putStringSet("bin_items", binSet).apply()
+                                    loadVideos()
+                                } catch (e: Exception) { Toast.makeText(this, "Cannot delete file directly: ${e.message}", Toast.LENGTH_SHORT).show() }
+                            }.setNegativeButton("Cancel", null).show()
+                        }
+                        "Rename" -> {
+                            val et = EditText(this).apply { setText(item.title) }
+                            AlertDialog.Builder(this).setTitle("Rename Video").setView(et).setPositiveButton("Save") { _, _ ->
+                                try {
+                                    val vals = ContentValues().apply { put(MediaStore.Video.Media.DISPLAY_NAME, et.text.toString()) }
+                                    contentResolver.update(android.net.Uri.parse(item.uriString), vals, null, null)
+                                    loadVideos()
+                                } catch (e: Exception) { Toast.makeText(this, "Rename failed: ${e.message}", Toast.LENGTH_SHORT).show() }
+                            }.setNegativeButton("Cancel", null).show()
+                        }
+                    }
+                    true
+                }
+                p.show()
             }
         }
         EOF
@@ -534,12 +721,13 @@ jobs:
             private lateinit var topBar: View
             private lateinit var bottomBar: View
             private lateinit var btnLock: Button
-            private lateinit var btnSnap: Button
+            private lateinit var rightControls: View
             private lateinit var btnPlay: Button
             private lateinit var seekBar: SeekBar
             private lateinit var txtTime: TextView
             private lateinit var am: AudioManager
             private lateinit var gd: GestureDetector
+            private lateinit var scaleDetector: ScaleGestureDetector
 
             private var videoList = ArrayList<VideoItem>()
             private var curIdx = 0
@@ -552,6 +740,9 @@ jobs:
             private var zoomMode = 0
             private var swipeSeekPos = 0L
             private var isSeekingViaSwipe = false
+            private var customScale = 1.0f
+            private var transX = 0f
+            private var transY = 0f
             private val handler = Handler(Looper.getMainLooper())
 
             private val batteryReceiver = object : BroadcastReceiver() {
@@ -574,7 +765,7 @@ jobs:
                 topBar = findViewById(R.id.topBar)
                 bottomBar = findViewById(R.id.bottomBar)
                 btnLock = findViewById(R.id.btnLock)
-                btnSnap = findViewById(R.id.btnSnapshot)
+                rightControls = findViewById(R.id.rightControls)
                 btnPlay = findViewById(R.id.btnPlayPause)
                 seekBar = findViewById(R.id.seekBar)
                 txtTime = findViewById(R.id.txtTime)
@@ -611,10 +802,11 @@ jobs:
                     isLock = !isLock
                     btnLock.text = if (isLock) "🔒" else "🔓"
                     val v = if (isLock) View.GONE else View.VISIBLE
-                    topBar.visibility = v; bottomBar.visibility = v; btnSnap.visibility = v
+                    topBar.visibility = v; bottomBar.visibility = v; rightControls.visibility = v
                     show(if (isLock) "Locked" else "Unlocked")
                 }
-                btnSnap.setOnClickListener { takeSnap() }
+                findViewById<Button>(R.id.btnSnapshot).setOnClickListener { takeSnap() }
+                findViewById<Button>(R.id.btnPiP).setOnClickListener { enterPiP() }
                 btnPlay.setOnClickListener {
                     player?.let {
                         if (it.isPlaying) { it.pause(); btnPlay.text = "▶" }
@@ -631,10 +823,12 @@ jobs:
                 findViewById<Button>(R.id.btnZoom).setOnClickListener {
                     zoomMode = (zoomMode + 1) % 3
                     val btn = it as Button
+                    customScale = 1.0f; transX = 0f; transY = 0f
+                    applyZoomAndPan()
                     when (zoomMode) {
                         0 -> { pv.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT; btn.text = "FIT" }
-                        1 -> { pv.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM; btn.text = "ZOOM" }
-                        2 -> { pv.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FILL; btn.text = "STRETCH" }
+                        1 -> { pv.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FILL; btn.text = "STRETCH" }
+                        2 -> { pv.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM; btn.text = "ZOOM" }
                     }
                 }
                 findViewById<Button>(R.id.btnRotate).setOnClickListener {
@@ -652,24 +846,46 @@ jobs:
                 })
             }
 
+            private fun applyZoomAndPan() {
+                val sv = pv.videoSurfaceView ?: return
+                sv.scaleX = customScale
+                sv.scaleY = customScale
+                sv.translationX = transX
+                sv.translationY = transY
+            }
+
             private fun showSpeedDialog() {
-                val opts = arrayOf("0.5x", "0.75x", "1.0x", "1.25x", "1.5x", "2.0x")
-                val vals = floatArrayOf(0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 2.0f)
+                val opts = arrayOf("0.5x", "0.75x", "1.0x", "1.25x", "1.5x", "1.75x", "2.0x", "Custom Speed")
+                val vals = floatArrayOf(0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 1.75f, 2.0f)
                 AlertDialog.Builder(this).setTitle("Playback Speed").setItems(opts) { _, idx ->
-                    player?.playbackParameters = PlaybackParameters(vals[idx])
-                    show("Speed: ${opts[idx]}")
+                    if (idx < vals.size) {
+                        player?.playbackParameters = PlaybackParameters(vals[idx])
+                        show("Speed: ${opts[idx]}")
+                    } else {
+                        val et = EditText(this).apply { hint = "e.g. 1.35"; setRawInputType(android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL) }
+                        AlertDialog.Builder(this).setTitle("Enter Custom Speed").setView(et).setPositiveButton("Set") { _, _ ->
+                            val sp = et.text.toString().toFloatOrNull() ?: 1.0f
+                            player?.playbackParameters = PlaybackParameters(sp)
+                            show("Speed: ${sp}x")
+                        }.show()
+                    }
                 }.show()
             }
 
             private fun showMenuOptions(v: View) {
                 val p = PopupMenu(this, v)
-                p.menu.add(0, 1, 0, "⧉ Picture-in-Picture (PiP)")
-                p.menu.add(0, 2, 0, if (ccOn) "CC: Captions OFF" else "CC: Captions ON")
-                p.menu.add(0, 3, 0, "🎵 Save MP3")
-                p.menu.add(0, 4, 0, "⚙️ Settings")
+                p.menu.add(0, 1, 0, "🎵 Save MP3")
+                p.menu.add(0, 2, 0, if (ccOn) "CC: Subtitles OFF" else "CC: Subtitles ON")
+                p.menu.add(0, 3, 0, "🎧 Audio Track")
                 p.setOnMenuItemClickListener { m ->
                     when (m.itemId) {
-                        1 -> enterPiP()
+                        1 -> {
+                            if (videoList.isNotEmpty()) {
+                                val item = videoList[curIdx]
+                                show("Saving MP3...")
+                                thread { saveAudio(Uri.parse(item.uriString), item.title) }
+                            }
+                        }
                         2 -> {
                             ccOn = !ccOn
                             player?.trackSelectionParameters?.let { params ->
@@ -677,18 +893,35 @@ jobs:
                             }
                             show(if (ccOn) "CC ON" else "CC OFF")
                         }
-                        3 -> {
-                            if (videoList.isNotEmpty()) {
-                                val item = videoList[curIdx]
-                                show("Saving MP3...")
-                                thread { saveAudio(Uri.parse(item.uriString), item.title) }
-                            }
-                        }
-                        4 -> show("Default Settings")
+                        3 -> showAudioTrackSelection()
                     }
                     true
                 }
                 p.show()
+            }
+
+            private fun showAudioTrackSelection() {
+                val tracks = player?.currentTracks ?: return
+                val audioTrackList = ArrayList<String>()
+                val trackGroupList = ArrayList<Pair<TrackGroup, Int>>()
+                for (group in tracks.groups) {
+                    if (group.type == C.TRACK_TYPE_AUDIO) {
+                        for (i in 0 until group.length) {
+                            val format = group.getTrackFormat(i)
+                            val lang = format.language ?: "Track ${audioTrackList.size + 1}"
+                            val label = "${lang} (${format.sampleMimeType ?: "Audio"})"
+                            audioTrackList.add(label)
+                            trackGroupList.add(Pair(group.mediaTrackGroup, i))
+                        }
+                    }
+                }
+                if (audioTrackList.isEmpty()) { show("No Multiple Tracks Found"); return }
+                AlertDialog.Builder(this).setTitle("Select Audio Track").setItems(audioTrackList.toTypedArray()) { _, i ->
+                    val pair = trackGroupList[i]
+                    player?.trackSelectionParameters = player?.trackSelectionParameters?.buildUpon()
+                        ?.setOverrideForType(TrackSelectionOverride(pair.first, pair.second))?.build() ?: return@setItems
+                    show("Selected: ${audioTrackList[i]}")
+                }.show()
             }
 
             private fun enterPiP() {
@@ -707,7 +940,7 @@ jobs:
             override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: android.content.res.Configuration) {
                 super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
                 val v = if (isInPictureInPictureMode) View.GONE else View.VISIBLE
-                topBar.visibility = v; bottomBar.visibility = v; btnLock.visibility = v; btnSnap.visibility = v
+                topBar.visibility = v; bottomBar.visibility = v; btnLock.visibility = v; rightControls.visibility = v
             }
 
             private fun initPlayer(uri: Uri) {
@@ -772,15 +1005,15 @@ jobs:
                     }
                     muxer.stop(); muxer.release(); ex.release()
                     val vals = ContentValues().apply {
-                        put(MediaStore.MediaColumns.DISPLAY_NAME, "${title.substringBeforeLast(".")}_Audio.m4a")
-                        put(MediaStore.MediaColumns.MIME_TYPE, "audio/mp4")
-                        if (Build.VERSION.SDK_INT >= 29) put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_MUSIC + "/UniversalPlayer")
+                        put(MediaStore.MediaColumns.DISPLAY_NAME, "${title.substringBeforeLast(".")}_Audio.mp3")
+                        put(MediaStore.MediaColumns.MIME_TYPE, "audio/mp3")
+                        if (Build.VERSION.SDK_INT >= 29) put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_MUSIC + "/VideoPlayer")
                     }
                     contentResolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, vals)?.let { outUri ->
                         contentResolver.openOutputStream(outUri)?.use { os -> FileInputStream(tmp).use { it.copyTo(os) } }
                     }
                     tmp.delete()
-                    runOnUiThread { show("Audio Saved to Music!"); Toast.makeText(this, "Saved in Music/UniversalPlayer", Toast.LENGTH_LONG).show() }
+                    runOnUiThread { show("Saved to Music/VideoPlayer!"); Toast.makeText(this, "Saved as MP3!", Toast.LENGTH_LONG).show() }
                 } catch (e: Exception) { runOnUiThread { show("Failed: ${e.message}") } }
             }
 
@@ -791,22 +1024,34 @@ jobs:
                         val vals = ContentValues().apply {
                             put(MediaStore.MediaColumns.DISPLAY_NAME, "Snap_${System.currentTimeMillis()}.jpg")
                             put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
-                            if (Build.VERSION.SDK_INT >= 29) put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/UniversalPlayer")
+                            if (Build.VERSION.SDK_INT >= 29) put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/VideoPlayer")
                         }
                         contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, vals)?.let { u ->
-                            contentResolver.openOutputStream(u)?.use { bm.compress(Bitmap.CompressFormat.JPEG, 95, it) }
+                            contentResolver.openOutputStream(u)?.use { bm.compress(Bitmap.CompressFormat.JPEG, 100, it) }
                         }
-                        show("Photo Saved!")
+                        show("HD Photo Saved!")
                     }
                 }
             }
 
             private fun setupGestures() {
+                scaleDetector = ScaleGestureDetector(this, object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
+                    override fun onScale(d: ScaleGestureDetector): Boolean {
+                        if (zoomMode == 2) {
+                            customScale = (customScale * d.scaleFactor).coerceIn(1.0f, 4.0f)
+                            applyZoomAndPan()
+                            show("Zoom: ${(customScale * 100).toInt()}%")
+                            return true
+                        }
+                        return false
+                    }
+                })
+
                 gd = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
                     override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
                         if (isLock) return false
                         val v = if (bottomBar.visibility == View.VISIBLE) View.GONE else View.VISIBLE
-                        topBar.visibility = v; bottomBar.visibility = v; btnLock.visibility = v; btnSnap.visibility = v
+                        topBar.visibility = v; bottomBar.visibility = v; btnLock.visibility = v; rightControls.visibility = v
                         return true
                     }
 
@@ -821,28 +1066,30 @@ jobs:
                     override fun onScroll(e1: MotionEvent?, e2: MotionEvent, dx: Float, dy: Float): Boolean {
                         if (isLock || e1 == null) return false
                         val width = resources.displayMetrics.widthPixels
-                        val dur = player?.duration ?: 0L
 
-                        // Horizontal swipe for Video Seeking (<< / >>)
+                        if (e2.pointerCount >= 2 && zoomMode == 2) {
+                            transX -= dx
+                            transY -= dy
+                            applyZoomAndPan()
+                            return true
+                        }
+
                         if (abs(dx) > abs(dy)) {
                             if (!isSeekingViaSwipe) {
                                 isSeekingViaSwipe = true
                                 swipeSeekPos = player?.currentPosition ?: 0L
                             }
-                            val seekStep = (-dx * 200).toLong()
-                            swipeSeekPos = (swipeSeekPos + seekStep).coerceIn(0L, dur)
+                            val dur = player?.duration ?: 0L
+                            swipeSeekPos = (swipeSeekPos + (-dx * 200).toLong()).coerceIn(0L, dur)
                             val icon = if (dx < 0) ">>" else "<<"
                             show("$icon ${fmtTime(swipeSeekPos)} / ${fmtTime(dur)}")
                             return true
                         }
 
-                        // Vertical swipe for Volume & Brightness
                         if (e1.x > width / 2) {
                             curVolProgress = (curVolProgress + (dy / 70f)).coerceIn(0f, maxVol.toFloat())
-                            val targetInt = curVolProgress.toInt()
-                            am.setStreamVolume(AudioManager.STREAM_MUSIC, targetInt, 0)
-                            val pct = ((curVolProgress / maxVol) * 100).toInt()
-                            show("Vol: $pct%")
+                            am.setStreamVolume(AudioManager.STREAM_MUSIC, curVolProgress.toInt(), 0)
+                            show("Vol: ${((curVolProgress / maxVol) * 100).toInt()}%")
                         } else {
                             curBri = (curBri + (dy / 2500f)).coerceIn(0.01f, 1.0f)
                             window.attributes = window.attributes.apply { screenBrightness = curBri }
@@ -853,6 +1100,7 @@ jobs:
                 })
 
                 pv.setOnTouchListener { _, ev ->
+                    scaleDetector.onTouchEvent(ev)
                     gd.onTouchEvent(ev)
                     if (ev.action == MotionEvent.ACTION_UP) {
                         if (isSeekingViaSwipe) {
@@ -881,5 +1129,5 @@ jobs:
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: Video-Ultimate-APK
+        name: Video-Manager-Pro-APK
         path: app/build/outputs/apk/debug/*.apk
