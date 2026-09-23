@@ -76,8 +76,8 @@ jobs:
                 applicationId "com.example.universalplayer"
                 minSdk 26
                 targetSdk 34
-                versionCode 10
-                versionName "10.0"
+                versionCode 11
+                versionName "11.0"
             }
 
             buildTypes {
@@ -247,7 +247,6 @@ jobs:
                 app:surface_type="texture_view"
                 app:resize_mode="fit" />
 
-            <!-- 1. Top Bar: Clock & Battery -->
             <RelativeLayout
                 android:id="@+id/topBar"
                 android:layout_width="match_parent"
@@ -273,7 +272,6 @@ jobs:
                     android:text="🔋 100%" />
             </RelativeLayout>
 
-            <!-- 2. Screen Edges: Middle Left Lock & Middle Right Snap -->
             <Button
                 android:id="@+id/btnLock"
                 android:layout_width="44dp"
@@ -298,7 +296,6 @@ jobs:
                 android:textColor="#FFFFFF"
                 android:backgroundTint="#80000000" />
 
-            <!-- 4. Bottom Control Bar -->
             <LinearLayout
                 android:id="@+id/bottomBar"
                 android:layout_width="match_parent"
@@ -675,7 +672,9 @@ jobs:
                         1 -> enterPiP()
                         2 -> {
                             ccOn = !ccOn
-                            player?.trackSelectionParameters = player?.trackSelectionParameters?.buildUpon()?.setTrackTypeDisabled(C.TRACK_TYPE_TEXT, !ccOn)?.build() ?: true
+                            player?.trackSelectionParameters?.let { params ->
+                                player?.trackSelectionParameters = params.buildUpon().setTrackTypeDisabled(C.TRACK_TYPE_TEXT, !ccOn).build()
+                            }
                             show(if (ccOn) "CC ON" else "CC OFF")
                         }
                         3 -> curUri?.let { u -> show("Saving MP3..."); thread { saveAudio(u, curTitle) } }
@@ -700,9 +699,9 @@ jobs:
                 }
             }
 
-            override fun onPictureInPictureModeChanged(inPiP: Boolean, config: android.content.res.Configuration) {
-                super.onPictureInPictureModeChanged(inPiP, config)
-                val v = if (inPiP) View.GONE else View.VISIBLE
+            override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: android.content.res.Configuration) {
+                super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+                val v = if (isInPictureInPictureMode) View.GONE else View.VISIBLE
                 topBar.visibility = v; bottomBar.visibility = v; btnLock.visibility = v; btnSnap.visibility = v
             }
 
