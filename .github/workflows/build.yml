@@ -76,8 +76,8 @@ jobs:
                 applicationId "com.example.universalplayer"
                 minSdk 24
                 targetSdk 34
-                versionCode 5
-                versionName "5.0"
+                versionCode 9
+                versionName "9.0"
             }
 
             buildTypes {
@@ -98,7 +98,6 @@ jobs:
             implementation 'androidx.core:core-ktx:1.12.0'
             implementation 'androidx.appcompat:appcompat:1.6.1'
             implementation 'com.google.android.material:material:1.11.0'
-            implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
             implementation 'androidx.recyclerview:recyclerview:1.3.2'
             implementation 'androidx.media3:media3-exoplayer:1.2.1'
             implementation 'androidx.media3:media3-ui:1.2.1'
@@ -112,7 +111,9 @@ jobs:
         <manifest xmlns:android="http://schemas.android.com/apk/res/android">
             <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
             <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+            <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
             <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+            <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
             <application
                 android:allowBackup="true"
                 android:icon="@android:drawable/ic_media_play"
@@ -140,7 +141,6 @@ jobs:
             <string name="app_name">Universal Player</string>
         </resources>
         EOF
-
         cat << 'EOF' > app/src/main/res/layout/activity_main.xml
         <?xml version="1.0" encoding="utf-8"?>
         <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -152,25 +152,36 @@ jobs:
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
                 android:padding="16dp"
                 android:gravity="center_vertical">
-
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="All Device Videos"
+                    android:text="All Videos"
                     android:textColor="#FFFFFF"
                     android:textSize="20sp"
                     android:textStyle="bold" />
-
                 <Button
                     android:id="@+id/btnOpenFile"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Open File" />
             </LinearLayout>
+
+            <EditText
+                android:id="@+id/etSearchVideos"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginBottom="8dp"
+                android:paddingHorizontal="14dp"
+                android:background="#222222"
+                android:textColor="#FFFFFF"
+                android:textColorHint="#888888"
+                android:hint="🔍 Search video by name..."
+                android:singleLine="true"
+                android:textSize="14sp" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerViewVideos"
@@ -184,24 +195,20 @@ jobs:
         <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
             android:padding="12dp"
             android:gravity="center_vertical"
             android:background="?android:attr/selectableItemBackground">
-
             <ImageView
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
                 android:src="@android:drawable/ic_media_play"
                 android:tint="#00E676" />
-
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="vertical"
-                android:layout_marginStart="16dp">
-
+                android:layout_marginStart="14dp">
                 <TextView
                     android:id="@+id/txtTitle"
                     android:layout_width="match_parent"
@@ -211,14 +218,13 @@ jobs:
                     android:textStyle="bold"
                     android:maxLines="1"
                     android:ellipsize="end" />
-
                 <TextView
                     android:id="@+id/txtDuration"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:textColor="#AAAAAA"
                     android:textSize="13sp"
-                    android:layout_marginTop="4dp" />
+                    android:layout_marginTop="3dp" />
             </LinearLayout>
         </LinearLayout>
         EOF
@@ -227,7 +233,6 @@ jobs:
         <?xml version="1.0" encoding="utf-8"?>
         <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:app="http://schemas.android.com/apk/res-auto"
-            android:id="@+id/playerRoot"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="#000000">
@@ -237,101 +242,73 @@ jobs:
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 app:use_controller="true"
-                app:show_buffering="always"
+                app:surface_type="texture_view"
                 app:resize_mode="fit" />
 
             <LinearLayout
+                android:id="@+id/topBarControls"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentTop="true"
                 android:layout_alignParentEnd="true"
-                android:padding="16dp"
+                android:padding="10dp"
                 android:orientation="horizontal">
-
-                <Button
-                    android:id="@+id/btnZoomToggle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="40dp"
-                    android:text="Fit"
-                    android:textSize="12sp"
-                    android:textColor="#FFFFFF"
-                    android:backgroundTint="#333333" />
-
-                <Button
-                    android:id="@+id/btnRotateToggle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="40dp"
-                    android:layout_marginStart="8dp"
-                    android:text="Rotate"
-                    android:textSize="12sp"
-                    android:textColor="#FFFFFF"
-                    android:backgroundTint="#333333" />
+                <Button android:id="@+id/btnCC" android:layout_width="wrap_content" android:layout_height="36dp" android:text="CC" android:textSize="11sp" android:textColor="#FFF" android:backgroundTint="#333" />
+                <Button android:id="@+id/btnAudioSave" android:layout_width="wrap_content" android:layout_height="36dp" android:layout_marginStart="4dp" android:text="🎵 Save MP3" android:textSize="11sp" android:textColor="#FFF" android:backgroundTint="#333" />
+                <Button android:id="@+id/btnScreenshot" android:layout_width="wrap_content" android:layout_height="36dp" android:layout_marginStart="4dp" android:text="📸 Snap" android:textSize="11sp" android:textColor="#FFF" android:backgroundTint="#333" />
+                <Button android:id="@+id/btnSpeed" android:layout_width="wrap_content" android:layout_height="36dp" android:layout_marginStart="4dp" android:text="1.0x" android:textSize="11sp" android:textColor="#FFF" android:backgroundTint="#333" />
+                <Button android:id="@+id/btnRotateToggle" android:layout_width="wrap_content" android:layout_height="36dp" android:layout_marginStart="4dp" android:text="⛶" android:textSize="13sp" android:textColor="#FFF" android:backgroundTint="#333" />
             </LinearLayout>
+
+            <Button android:id="@+id/btnLock" android:layout_width="wrap_content" android:layout_height="36dp" android:layout_alignParentTop="true" android:layout_alignParentStart="true" android:layout_margin="10dp" android:text="🔓" android:textSize="13sp" android:textColor="#FFF" android:backgroundTint="#333" />
 
             <TextView
                 android:id="@+id/txtIndicator"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerInParent="true"
-                android:padding="16dp"
+                android:padding="14dp"
                 android:background="#99000000"
                 android:textColor="#FFFFFF"
-                android:textSize="18sp"
+                android:textSize="17sp"
                 android:textStyle="bold"
                 android:visibility="gone" />
         </RelativeLayout>
         EOF
+
         cat << 'EOF' > app/src/main/java/com/example/universalplayer/VideoItem.kt
         package com.example.universalplayer
-
         import android.net.Uri
-
-        data class VideoItem(
-            val id: Long,
-            val title: String,
-            val duration: String,
-            val uri: Uri
-        )
+        data class VideoItem(val id: Long, val title: String, val duration: String, val uri: Uri)
         EOF
 
         cat << 'EOF' > app/src/main/java/com/example/universalplayer/VideoAdapter.kt
         package com.example.universalplayer
-
         import android.view.LayoutInflater
         import android.view.View
         import android.view.ViewGroup
         import android.widget.TextView
         import androidx.recyclerview.widget.RecyclerView
 
-        class VideoAdapter(
-            private val videos: List<VideoItem>,
-            private val onClick: (VideoItem) -> Unit
-        ) : RecyclerView.Adapter<VideoAdapter.ViewHolder>() {
-
-            class ViewHolder(v: View) : RecyclerView.ViewHolder(v) {
-                val txtTitle: TextView = v.findViewById(R.id.txtTitle)
-                val txtDuration: TextView = v.findViewById(R.id.txtDuration)
+        class VideoAdapter(private var list: List<VideoItem>, private val onClick: (VideoItem) -> Unit) : RecyclerView.Adapter<VideoAdapter.VH>() {
+            class VH(v: View) : RecyclerView.ViewHolder(v) {
+                val t: TextView = v.findViewById(R.id.txtTitle)
+                val d: TextView = v.findViewById(R.id.txtDuration)
             }
-
-            override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-                val view = LayoutInflater.from(parent.context).inflate(R.layout.item_video, parent, false)
-                return ViewHolder(view)
+            override fun onCreateViewHolder(p: ViewGroup, vt: Int) = VH(LayoutInflater.from(p.context).inflate(R.layout.item_video, p, false))
+            override fun onBindViewHolder(h: VH, pos: Int) {
+                val item = list[pos]
+                h.t.text = item.title
+                h.d.text = item.duration
+                h.itemView.setOnClickListener { onClick(item) }
             }
-
-            override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-                val video = videos[position]
-                holder.txtTitle.text = video.title
-                holder.txtDuration.text = video.duration
-                holder.itemView.setOnClickListener { onClick(video) }
-            }
-
-            override fun getItemCount() = videos.size
+            override fun getItemCount() = list.size
+            fun update(newList: List<VideoItem>) { list = newList; notifyDataSetChanged() }
         }
         EOF
 
         cat << 'EOF' > app/src/main/java/com/example/universalplayer/MainActivity.kt
         package com.example.universalplayer
-
         import android.Manifest
         import android.content.ContentUris
         import android.content.Intent
@@ -339,8 +316,10 @@ jobs:
         import android.os.Build
         import android.os.Bundle
         import android.provider.MediaStore
+        import android.text.Editable
+        import android.text.TextWatcher
         import android.widget.Button
-        import android.widget.Toast
+        import android.widget.EditText
         import androidx.activity.result.contract.ActivityResultContracts
         import androidx.appcompat.app.AppCompatActivity
         import androidx.core.content.ContextCompat
@@ -349,299 +328,257 @@ jobs:
         import java.util.concurrent.TimeUnit
 
         class MainActivity : AppCompatActivity() {
+            private lateinit var rv: RecyclerView
+            private lateinit var adapter: VideoAdapter
+            private val allVideos = mutableListOf<VideoItem>()
 
-            private lateinit var recyclerView: RecyclerView
-            private val videoList = mutableListOf<VideoItem>()
-
-            private val pickVideoLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { res ->
-                if (res.resultCode == RESULT_OK) {
-                    res.data?.data?.let { uri ->
-                        val intent = Intent(this, PlayerActivity::class.java).apply {
-                            putExtra("VIDEO_URI", uri.toString())
-                            putExtra("VIDEO_TITLE", "Custom Video")
-                        }
-                        startActivity(intent)
-                    }
-                }
+            private val pickVideo = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { res ->
+                if (res.resultCode == RESULT_OK) res.data?.data?.let { launchPlayer(it, "Custom Video") }
             }
-
-            private val requestPermission = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { map ->
-                if (map.values.any { it }) {
-                    loadVideos()
-                } else {
-                    Toast.makeText(this, "Permission required to list videos", Toast.LENGTH_LONG).show()
-                }
+            private val reqPerms = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { map ->
+                if (map.values.any { it }) loadVideos()
             }
 
             override fun onCreate(savedInstanceState: Bundle?) {
                 super.onCreate(savedInstanceState)
                 setContentView(R.layout.activity_main)
-
-                recyclerView = findViewById(R.id.recyclerViewVideos)
-                recyclerView.layoutManager = LinearLayoutManager(this)
+                rv = findViewById(R.id.recyclerViewVideos)
+                rv.layoutManager = LinearLayoutManager(this)
+                adapter = VideoAdapter(allVideos) { launchPlayer(it.uri, it.title) }
+                rv.adapter = adapter
 
                 findViewById<Button>(R.id.btnOpenFile).setOnClickListener {
-                    val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-                        addCategory(Intent.CATEGORY_OPENABLE)
-                        type = "*/*"
-                    }
-                    pickVideoLauncher.launch(intent)
+                    val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply { addCategory(Intent.CATEGORY_OPENABLE); type = "*/*" }
+                    pickVideo.launch(intent)
                 }
-
-                checkAndRequestPermissions()
+                findViewById<EditText>(R.id.etSearchVideos).addTextChangedListener(object : TextWatcher {
+                    override fun beforeTextChanged(s: CharSequence?, b: Int, c: Int, a: Int) {}
+                    override fun onTextChanged(s: CharSequence?, b: Int, c: Int, a: Int) {
+                        val q = s.toString().trim()
+                        adapter.update(if (q.isEmpty()) allVideos else allVideos.filter { it.title.contains(q, true) })
+                    }
+                    override fun afterTextChanged(e: Editable?) {}
+                })
+                checkPerms()
             }
 
-            private fun checkAndRequestPermissions() {
-                val perms = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    arrayOf(Manifest.permission.READ_MEDIA_VIDEO, Manifest.permission.READ_MEDIA_AUDIO)
-                } else {
-                    arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
-                }
+            private fun launchPlayer(uri: android.net.Uri, title: String) {
+                startActivity(Intent(this, PlayerActivity::class.java).apply {
+                    putExtra("VIDEO_URI", uri.toString())
+                    putExtra("VIDEO_TITLE", title)
+                })
+            }
 
-                if (perms.all { ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED }) {
-                    loadVideos()
-                } else {
-                    requestPermission.launch(perms)
-                }
+            private fun checkPerms() {
+                val perms = if (Build.VERSION.SDK_INT >= 33) arrayOf(Manifest.permission.READ_MEDIA_VIDEO, Manifest.permission.READ_MEDIA_AUDIO, Manifest.permission.READ_MEDIA_IMAGES)
+                else arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                if (perms.all { ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED }) loadVideos()
+                else reqPerms.launch(perms)
             }
 
             private fun loadVideos() {
-                videoList.clear()
-                val projection = arrayOf(
-                    MediaStore.Video.Media._ID,
-                    MediaStore.Video.Media.DISPLAY_NAME,
-                    MediaStore.Video.Media.DURATION
-                )
-
-                contentResolver.query(
-                    MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-                    projection,
-                    null,
-                    null,
-                    "${MediaStore.Video.Media.DATE_ADDED} DESC"
-                )?.use { cursor ->
-                    val idCol = cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
-                    val nameCol = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME)
-                    val durCol = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)
-
-                    while (cursor.moveToNext()) {
-                        val id = cursor.getLong(idCol)
-                        val name = cursor.getString(nameCol) ?: "Video"
-                        val durMs = cursor.getLong(durCol)
-                        val durStr = String.format("%02d:%02d",
-                            TimeUnit.MILLISECONDS.toMinutes(durMs),
-                            TimeUnit.MILLISECONDS.toSeconds(durMs) % 60
-                        )
-                        val uri = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id)
-                        videoList.add(VideoItem(id, name, durStr, uri))
+                allVideos.clear()
+                val proj = arrayOf(MediaStore.Video.Media._ID, MediaStore.Video.Media.DISPLAY_NAME, MediaStore.Video.Media.DURATION)
+                contentResolver.query(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, proj, null, null, "${MediaStore.Video.Media.DATE_ADDED} DESC")?.use { c ->
+                    val idCol = c.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
+                    val nameCol = c.getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME)
+                    val durCol = c.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)
+                    while (c.moveToNext()) {
+                        val id = c.getLong(idCol)
+                        val ms = c.getLong(durCol)
+                        val dur = String.format("%02d:%02d", TimeUnit.MILLISECONDS.toMinutes(ms), TimeUnit.MILLISECONDS.toSeconds(ms) % 60)
+                        allVideos.add(VideoItem(id, c.getString(nameCol) ?: "Video", dur, ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id)))
                     }
                 }
-
-                recyclerView.adapter = VideoAdapter(videoList) { selectedVideo ->
-                    val intent = Intent(this, PlayerActivity::class.java).apply {
-                        putExtra("VIDEO_URI", selectedVideo.uri.toString())
-                        putExtra("VIDEO_TITLE", selectedVideo.title)
-                    }
-                    startActivity(intent)
-                }
+                adapter.update(allVideos)
             }
         }
         EOF
-
         cat << 'EOF' > app/src/main/java/com/example/universalplayer/PlayerActivity.kt
         package com.example.universalplayer
-
+        import android.content.ContentValues
         import android.content.Context
         import android.content.pm.ActivityInfo
-        import android.media.AudioManager
+        import android.graphics.Bitmap
+        import android.media.*
         import android.net.Uri
-        import android.os.Bundle
-        import android.view.GestureDetector
-        import android.view.MotionEvent
-        import android.view.ScaleGestureDetector
-        import android.view.View
-        import android.view.WindowManager
-        import android.widget.Button
-        import android.widget.TextView
-        import android.widget.Toast
+        import android.os.*
+        import android.provider.MediaStore
+        import android.view.*
+        import android.widget.*
         import androidx.appcompat.app.AppCompatActivity
-        import androidx.media3.common.MediaItem
-        import androidx.media3.common.PlaybackException
-        import androidx.media3.common.Player
+        import androidx.media3.common.*
         import androidx.media3.exoplayer.DefaultRenderersFactory
         import androidx.media3.exoplayer.ExoPlayer
         import androidx.media3.extractor.DefaultExtractorsFactory
         import androidx.media3.extractor.ts.DefaultTsPayloadReaderFactory
-        import androidx.media3.ui.AspectRatioFrameLayout
         import androidx.media3.ui.PlayerView
+        import java.io.*
+        import java.nio.ByteBuffer
+        import kotlin.concurrent.thread
         import kotlin.math.abs
 
         class PlayerActivity : AppCompatActivity() {
-
             private var player: ExoPlayer? = null
-            private lateinit var playerView: PlayerView
-            private lateinit var txtIndicator: TextView
-            private lateinit var audioManager: AudioManager
-            private lateinit var gestureDetector: GestureDetector
-            private lateinit var scaleGestureDetector: ScaleGestureDetector
-
-            private var maxVolume = 15
-            private var currentBrightness = 0.5f
-            private var isLandscape = false
-            private var currentResizeMode = 0 // 0: Fit, 1: Fill/Zoom, 2: Fixed Height
+            private lateinit var pv: PlayerView
+            private lateinit var txtInd: TextView
+            private lateinit var am: AudioManager
+            private lateinit var gd: GestureDetector
+            private var curUri: Uri? = null
+            private var curTitle: String = "audio"
+            private var maxVol = 15
+            private var curBri = 0.5f
+            private var isLand = false
+            private var isLock = false
+            private var ccOn = true
+            private val spds = floatArrayOf(0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 2.0f)
+            private var spdIdx = 2
 
             override fun onCreate(savedInstanceState: Bundle?) {
                 super.onCreate(savedInstanceState)
                 window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
                 setContentView(R.layout.activity_player)
+                pv = findViewById(R.id.playerView)
+                txtInd = findViewById(R.id.txtIndicator)
+                am = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+                maxVol = am.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+                val top = findViewById<LinearLayout>(R.id.topBarControls)
+                val lockBtn = findViewById<Button>(R.id.btnLock)
 
-                playerView = findViewById(R.id.playerView)
-                txtIndicator = findViewById(R.id.txtIndicator)
-                val btnZoom = findViewById<Button>(R.id.btnZoomToggle)
-                val btnRotate = findViewById<Button>(R.id.btnRotateToggle)
-
-                audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
-                maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
-
-                btnRotate.setOnClickListener {
-                    isLandscape = !isLandscape
-                    requestedOrientation = if (isLandscape) {
-                        ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-                    } else {
-                        ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-                    }
+                findViewById<Button>(R.id.btnRotateToggle).setOnClickListener {
+                    isLand = !isLand
+                    requestedOrientation = if (isLand) ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE else ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
                 }
-
-                btnZoom.setOnClickListener {
-                    currentResizeMode = (currentResizeMode + 1) % 3
-                    when (currentResizeMode) {
-                        0 -> {
-                            playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
-                            btnZoom.text = "Fit"
-                        }
-                        1 -> {
-                            playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
-                            btnZoom.text = "Zoom"
-                        }
-                        2 -> {
-                            playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FILL
-                            btnZoom.text = "Stretch"
-                        }
-                    }
+                val spdBtn = findViewById<Button>(R.id.btnSpeed)
+                spdBtn.setOnClickListener {
+                    spdIdx = (spdIdx + 1) % spds.size
+                    val s = spds[spdIdx]
+                    player?.playbackParameters = PlaybackParameters(s)
+                    spdBtn.text = "${s}x"
+                    show("${s}x")
                 }
+                lockBtn.setOnClickListener {
+                    isLock = !isLock
+                    lockBtn.text = if (isLock) "🔒" else "🔓"
+                    top.visibility = if (isLock) View.GONE else View.VISIBLE
+                    pv.useController = !isLock
+                    show(if (isLock) "Locked" else "Unlocked")
+                }
+                findViewById<Button>(R.id.btnAudioSave).setOnClickListener {
+                    curUri?.let { u -> show("Saving MP3..."); thread { saveAudio(u, curTitle) } }
+                }
+                findViewById<Button>(R.id.btnCC).setOnClickListener {
+                    ccOn = !ccOn
+                    player?.trackSelectionParameters = player?.trackSelectionParameters?.buildUpon()?.setTrackTypeDisabled(C.TRACK_TYPE_TEXT, !ccOn)?.build() ?: return@setOnClickListener
+                    show(if (ccOn) "CC ON" else "CC OFF")
+                }
+                findViewById<Button>(R.id.btnScreenshot).setOnClickListener { takeSnap() }
 
-                setupTouchAndGestures()
-
-                val uriStr = intent.getStringExtra("VIDEO_URI") ?: return
-                initPlayer(Uri.parse(uriStr))
+                setupGestures()
+                val uStr = intent.getStringExtra("VIDEO_URI") ?: return
+                curTitle = intent.getStringExtra("VIDEO_TITLE") ?: "audio"
+                curUri = Uri.parse(uStr)
+                initPlayer(curUri!!)
             }
 
             private fun initPlayer(uri: Uri) {
-                val renderersFactory = DefaultRenderersFactory(this)
-                    .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER)
-
-                val extractorsFactory = DefaultExtractorsFactory()
-                    .setConstantBitrateSeekingEnabled(true)
-                    .setTsExtractorFlags(
-                        DefaultTsPayloadReaderFactory.FLAG_ALLOW_NON_IDR_KEYFRAMES or
-                        DefaultTsPayloadReaderFactory.FLAG_DETECT_ACCESS_UNITS
-                    )
-
-                player = ExoPlayer.Builder(this, renderersFactory)
-                    .setMediaSourceFactory(
-                        androidx.media3.exoplayer.source.DefaultMediaSourceFactory(this, extractorsFactory)
-                    )
-                    .build()
-
-                playerView.player = player
-                player?.addListener(object : Player.Listener {
-                    override fun onPlayerError(error: PlaybackException) {
-                        Toast.makeText(this@PlayerActivity, "Error: ${error.message}", Toast.LENGTH_SHORT).show()
-                    }
-                })
-
+                val rf = DefaultRenderersFactory(this).setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER)
+                val ef = DefaultExtractorsFactory().setConstantBitrateSeekingEnabled(true).setTsExtractorFlags(DefaultTsPayloadReaderFactory.FLAG_ALLOW_NON_IDR_KEYFRAMES)
+                player = ExoPlayer.Builder(this, rf).setMediaSourceFactory(androidx.media3.exoplayer.source.DefaultMediaSourceFactory(this, ef)).build()
+                pv.player = player
                 player?.setMediaItem(MediaItem.fromUri(uri))
                 player?.prepare()
                 player?.play()
             }
 
-            private fun setupTouchAndGestures() {
-                scaleGestureDetector = ScaleGestureDetector(this, object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
-                    override fun onScale(detector: ScaleGestureDetector): Boolean {
-                        val factor = detector.scaleFactor
-                        if (factor > 1.1f) {
-                            playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
-                            showIndicator("Zoom In")
-                        } else if (factor < 0.9f) {
-                            playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
-                            showIndicator("Fit Screen")
-                        }
-                        return true
+            private fun saveAudio(uri: Uri, title: String) {
+                try {
+                    val ex = MediaExtractor()
+                    ex.setDataSource(this, uri, null)
+                    var aIdx = -1
+                    var aFmt: MediaFormat? = null
+                    for (i in 0 until ex.trackCount) {
+                        val f = ex.getTrackFormat(i)
+                        if ((f.getString(MediaFormat.KEY_MIME) ?: "").startsWith("audio/")) { aIdx = i; aFmt = f; break }
                     }
-                })
+                    if (aIdx == -1 || aFmt == null) { runOnUiThread { show("No Audio!") }; ex.release(); return }
+                    ex.selectTrack(aIdx)
+                    val tmp = File(cacheDir, "t.m4a")
+                    val muxer = MediaMuxer(tmp.absolutePath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
+                    val trk = muxer.addTrack(aFmt)
+                    muxer.start()
+                    val buf = ByteBuffer.allocate(1024 * 1024)
+                    val info = MediaCodec.BufferInfo()
+                    while (true) {
+                        val sz = ex.readSampleData(buf, 0)
+                        if (sz < 0) break
+                        info.set(0, sz, ex.sampleTime, ex.sampleFlags)
+                        muxer.writeSampleData(trk, buf, info)
+                        ex.advance()
+                    }
+                    muxer.stop(); muxer.release(); ex.release()
+                    val vals = ContentValues().apply {
+                        put(MediaStore.MediaColumns.DISPLAY_NAME, "${title.substringBeforeLast(".")}_Audio.m4a")
+                        put(MediaStore.MediaColumns.MIME_TYPE, "audio/mp4")
+                        if (Build.VERSION.SDK_INT >= 29) put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_MUSIC + "/UniversalPlayer")
+                    }
+                    contentResolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, vals)?.let { outUri ->
+                        contentResolver.openOutputStream(outUri)?.use { os -> FileInputStream(tmp).use { it.copyTo(os) } }
+                    }
+                    tmp.delete()
+                    runOnUiThread { show("Audio Saved to Music!"); Toast.makeText(this, "Saved in Music/UniversalPlayer", Toast.LENGTH_LONG).show() }
+                } catch (e: Exception) { runOnUiThread { show("Failed: ${e.message}") } }
+            }
 
-                gestureDetector = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
+            private fun takeSnap() {
+                val sv = pv.videoSurfaceView
+                if (sv is TextureView) {
+                    sv.bitmap?.let { bm ->
+                        val vals = ContentValues().apply {
+                            put(MediaStore.MediaColumns.DISPLAY_NAME, "Snap_${System.currentTimeMillis()}.jpg")
+                            put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
+                            if (Build.VERSION.SDK_INT >= 29) put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/UniversalPlayer")
+                        }
+                        contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, vals)?.let { u ->
+                            contentResolver.openOutputStream(u)?.use { bm.compress(Bitmap.CompressFormat.JPEG, 95, it) }
+                        }
+                        show("Photo Saved!")
+                    }
+                }
+            }
+
+            private fun setupGestures() {
+                gd = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
                     override fun onDoubleTap(e: MotionEvent): Boolean {
-                        val screenWidth = resources.displayMetrics.widthPixels
-                        if (e.x > screenWidth / 2) {
-                            player?.seekTo((player?.currentPosition ?: 0) + 10000)
-                            showIndicator("+10s")
+                        if (isLock) return false
+                        val fwd = e.x > resources.displayMetrics.widthPixels / 2
+                        player?.seekTo(if (fwd) (player?.currentPosition ?: 0) + 10000 else maxOf((player?.currentPosition ?: 0) - 10000, 0))
+                        show(if (fwd) "+10s" else "-10s")
+                        return true
+                    }
+                    override fun onScroll(e1: MotionEvent?, e2: MotionEvent, dx: Float, dy: Float): Boolean {
+                        if (isLock || e1 == null || abs(dy) <= abs(dx)) return false
+                        if (e1.x > resources.displayMetrics.widthPixels / 2) {
+                            val v = (am.getStreamVolume(AudioManager.STREAM_MUSIC) + (dy / 250).toInt()).coerceIn(0, maxVol)
+                            am.setStreamVolume(AudioManager.STREAM_MUSIC, v, 0)
+                            show("Vol: ${(v * 100) / maxVol}%")
                         } else {
-                            player?.seekTo(maxOf((player?.currentPosition ?: 0) - 10000, 0))
-                            showIndicator("-10s")
+                            curBri = (curBri + (dy / 1200f)).coerceIn(0.01f, 1.0f)
+                            window.attributes = window.attributes.apply { screenBrightness = curBri }
+                            show("Bri: ${(curBri * 100).toInt()}%")
                         }
                         return true
                     }
-
-                    override fun onScroll(e1: MotionEvent?, e2: MotionEvent, distanceX: Float, distanceY: Float): Boolean {
-                        if (e1 == null) return false
-                        val deltaY = e1.y - e2.y
-                        val screenWidth = resources.displayMetrics.widthPixels
-                        val isRightSide = e1.x > (screenWidth / 2)
-
-                        if (abs(distanceY) > abs(distanceX)) {
-                            if (isRightSide) {
-                                val currentVol = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
-                                val change = (deltaY / 250).toInt()
-                                val targetVol = (currentVol + change).coerceIn(0, maxVolume)
-                                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, targetVol, 0)
-                                val pct = (targetVol * 100) / maxVolume
-                                showIndicator("Volume: $pct%")
-                            } else {
-                                val layoutParams = window.attributes
-                                val change = deltaY / 1200f
-                                currentBrightness = (currentBrightness + change).coerceIn(0.01f, 1.0f)
-                                layoutParams.screenBrightness = currentBrightness
-                                window.attributes = layoutParams
-                                val pct = (currentBrightness * 100).toInt()
-                                showIndicator("Brightness: $pct%")
-                            }
-                            return true
-                        }
-                        return false
-                    }
                 })
-
-                playerView.setOnTouchListener { _, event ->
-                    scaleGestureDetector.onTouchEvent(event)
-                    gestureDetector.onTouchEvent(event)
-                    if (event.action == MotionEvent.ACTION_UP) {
-                        txtIndicator.postDelayed({ txtIndicator.visibility = View.GONE }, 800)
-                    }
+                pv.setOnTouchListener { _, ev ->
+                    gd.onTouchEvent(ev)
+                    if (ev.action == MotionEvent.ACTION_UP) txtInd.postDelayed({ txtInd.visibility = View.GONE }, 1000)
                     false
                 }
             }
 
-            private fun showIndicator(text: String) {
-                txtIndicator.text = text
-                txtIndicator.visibility = View.VISIBLE
-            }
-
-            override fun onDestroy() {
-                super.onDestroy()
-                player?.release()
-                player = null
-            }
+            private fun show(msg: String) { txtInd.text = msg; txtInd.visibility = View.VISIBLE }
+            override fun onDestroy() { super.onDestroy(); player?.release(); player = null }
         }
         EOF
 
@@ -651,5 +588,5 @@ jobs:
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: UniversalVideoPlayer-Pro-APK
+        name: UniversalVideoPlayer-Pro-Search-Audio-APK
         path: app/build/outputs/apk/debug/*.apk
