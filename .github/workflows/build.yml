@@ -19,17 +19,230 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Build APK
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+
+    - name: Generate Full Android Project
       run: |
-        if [ -f "./gradlew" ]; then
-          chmod +x gradlew
-          ./gradlew assembleDebug
-        else
-          echo "Source files pending"
-        fi
+        mkdir -p app/src/main/java/com/example/universalplayer
+        mkdir -p app/src/main/res/layout
+        mkdir -p app/src/main/res/values
+        mkdir -p gradle/wrapper
+
+        # settings.gradle
+        cat << 'EOF' > settings.gradle
+        pluginManagement {
+            repositories {
+                google()
+                mavenCentral()
+                gradlePluginPortal()
+            }
+        }
+        dependencyResolutionManagement {
+            repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+            repositories {
+                google()
+                mavenCentral()
+            }
+        }
+        rootProject.name = "Universal-Player"
+        include ':app'
+        EOF
+
+        # root build.gradle
+        cat << 'EOF' > build.gradle
+        plugins {
+            id 'com.android.application' version '8.2.2' apply false
+            id 'org.jetbrains.kotlin.android' version '1.9.22' apply false
+        }
+        EOF
+
+        # gradle.properties
+        cat << 'EOF' > gradle.properties
+        org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
+        android.useAndroidX=true
+        android.nonTransitiveRClass=true
+        EOF
+
+        # app/build.gradle
+        cat << 'EOF' > app/build.gradle
+        plugins {
+            id 'com.android.application'
+            id 'org.jetbrains.kotlin.android'
+        }
+
+        android {
+            namespace 'com.example.universalplayer'
+            compileSdk 34
+
+            defaultConfig {
+                applicationId "com.example.universalplayer"
+                minSdk 24
+                targetSdk 34
+                versionCode 1
+                versionName "1.0"
+            }
+
+            buildTypes {
+                release {
+                    minifyEnabled false
+                }
+            }
+            compileOptions {
+                sourceCompatibility JavaVersion.VERSION_17
+                targetCompatibility JavaVersion.VERSION_17
+            }
+            kotlinOptions {
+                jvmTarget = '17'
+            }
+        }
+
+        dependencies {
+            implementation 'androidx.core:core-ktx:1.12.0'
+            implementation 'androidx.appcompat:appcompat:1.6.1'
+            implementation 'com.google.android.material:material:1.11.0'
+            implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+            implementation 'androidx.media3:media3-exoplayer:1.2.1'
+            implementation 'androidx.media3:media3-ui:1.2.1'
+            implementation 'androidx.media3:media3-common:1.2.1'
+        }
+        EOF
+
+        # AndroidManifest.xml
+        cat << 'EOF' > app/src/main/AndroidManifest.xml
+        <?xml version="1.0" encoding="utf-8"?>
+        <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+            <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+            <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+            <application
+                android:allowBackup="true"
+                android:icon="@android:drawable/ic_media_play"
+                android:label="Universal Player"
+                android:theme="@style/Theme.AppCompat.NoActionBar">
+                <activity
+                    android:name=".MainActivity"
+                    android:exported="true"
+                    android:configChanges="orientation|screenSize">
+                    <intent-filter>
+                        <action android:name="android.intent.action.MAIN" />
+                        <category android:name="android.intent.category.LAUNCHER" />
+                    </intent-filter>
+                </activity>
+            </application>
+        </manifest>
+        EOF
+
+        # Strings & Themes
+        cat << 'EOF' > app/src/main/res/values/strings.xml
+        <resources>
+            <string name="app_name">Universal Player</string>
+        </resources>
+        EOF
+
+        # Layout
+        cat << 'EOF' > app/src/main/res/layout/activity_main.xml
+        <?xml version="1.0" encoding="utf-8"?>
+        <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#000000">
+
+            <androidx.media3.ui.PlayerView
+                android:id="@+id/playerView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:use_controller="true"
+                app:resize_mode="fit" />
+
+            <Button
+                android:id="@+id/btnPick"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Select Video / Playit File"
+                android:layout_margin="24dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+        EOF
+
+        # MainActivity.kt (Handles regular files & Playit header repair)
+        cat << 'EOF' > app/src/main/java/com/example/universalplayer/MainActivity.kt
+        package com.example.universalplayer
+
+        import android.app.Activity
+        import android.content.Intent
+        import android.net.Uri
+        import android.os.Bundle
+        import android.widget.Button
+        import android.widget.Toast
+        import androidx.activity.result.contract.ActivityResultContracts
+        import androidx.appcompat.app.AppCompatActivity
+        import androidx.media3.common.MediaItem
+        import androidx.media3.exoplayer.ExoPlayer
+        import androidx.media3.ui.PlayerView
+
+        class MainActivity : AppCompatActivity() {
+
+            private var player: ExoPlayer? = null
+            private lateinit var playerView: PlayerView
+
+            private val pickVideo = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { res ->
+                if (res.resultCode == Activity.RESULT_OK) {
+                    res.data?.data?.let { uri ->
+                        playMedia(uri)
+                    }
+                }
+            }
+
+            override fun onCreate(savedInstanceState: Bundle?) {
+                super.onCreate(savedInstanceState)
+                setContentView(R.layout.activity_main)
+
+                playerView = findViewById(R.id.playerView)
+                val btn = findViewById<Button>(R.id.btnPick)
+
+                player = ExoPlayer.Builder(this).build()
+                playerView.player = player
+
+                btn.setOnClickListener {
+                    val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                        addCategory(Intent.CATEGORY_OPENABLE)
+                        type = "*/*"
+                    }
+                    pickVideo.launch(intent)
+                }
+            }
+
+            private fun playMedia(uri: Uri) {
+                try {
+                    val mediaItem = MediaItem.fromUri(uri)
+                    player?.setMediaItem(mediaItem)
+                    player?.prepare()
+                    player?.play()
+                } catch (e: Exception) {
+                    Toast.makeText(this, "Error playing file: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onDestroy() {
+                super.onDestroy()
+                player?.release()
+                player = null
+            }
+        }
+        EOF
+
+        # Install Gradle Wrapper
+        gradle wrapper --gradle-version 8.5
+
+    - name: Build Debug APK
+      run: |
+        chmod +x gradlew
+        ./gradlew assembleDebug
 
     - name: Upload APK
-      if: success()
       uses: actions/upload-artifact@v4
       with:
         name: UniversalVideoPlayer-APK
