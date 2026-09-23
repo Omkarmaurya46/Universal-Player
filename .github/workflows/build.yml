@@ -76,8 +76,8 @@ jobs:
                 applicationId "com.example.universalplayer"
                 minSdk 26
                 targetSdk 34
-                versionCode 11
-                versionName "11.0"
+                versionCode 12
+                versionName "12.0"
             }
 
             buildTypes {
@@ -332,52 +332,14 @@ jobs:
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
                     android:layout_marginTop="4dp">
-                    <Button
-                        android:id="@+id/btnPlayPause"
-                        android:layout_width="wrap_content"
-                        android:layout_height="36dp"
-                        android:text="⏸"
-                        android:textColor="#FFF"
-                        android:backgroundTint="#333" />
-                    <Button
-                        android:id="@+id/btnSpeed"
-                        android:layout_width="wrap_content"
-                        android:layout_height="36dp"
-                        android:layout_marginStart="6dp"
-                        android:text="Speed"
-                        android:textSize="11sp"
-                        android:textColor="#FFF"
-                        android:backgroundTint="#333" />
-                    <Button
-                        android:id="@+id/btnZoom"
-                        android:layout_width="wrap_content"
-                        android:layout_height="36dp"
-                        android:layout_marginStart="6dp"
-                        android:text="Fit"
-                        android:textSize="11sp"
-                        android:textColor="#FFF"
-                        android:backgroundTint="#333" />
-                    <Button
-                        android:id="@+id/btnRotate"
-                        android:layout_width="wrap_content"
-                        android:layout_height="36dp"
-                        android:layout_marginStart="6dp"
-                        android:text="⛶"
-                        android:textSize="13sp"
-                        android:textColor="#FFF"
-                        android:backgroundTint="#333" />
-                    <View
-                        android:layout_width="0dp"
-                        android:layout_height="0dp"
-                        android:layout_weight="1" />
-                    <Button
-                        android:id="@+id/btnMenu"
-                        android:layout_width="wrap_content"
-                        android:layout_height="36dp"
-                        android:text="⋮"
-                        android:textSize="16sp"
-                        android:textColor="#FFF"
-                        android:backgroundTint="#333" />
+                    <Button android:id="@+id/btnPrev" android:layout_width="40dp" android:layout_height="36dp" android:text="⏮" android:textColor="#FFF" android:backgroundTint="#333" android:padding="0dp" />
+                    <Button android:id="@+id/btnPlayPause" android:layout_width="44dp" android:layout_height="36dp" android:layout_marginStart="4dp" android:text="⏸" android:textColor="#FFF" android:backgroundTint="#333" android:padding="0dp" />
+                    <Button android:id="@+id/btnNext" android:layout_width="40dp" android:layout_height="36dp" android:layout_marginStart="4dp" android:text="⏭" android:textColor="#FFF" android:backgroundTint="#333" android:padding="0dp" />
+                    <Button android:id="@+id/btnSpeed" android:layout_width="wrap_content" android:layout_height="36dp" android:layout_marginStart="6dp" android:text="Speed" android:textSize="11sp" android:textColor="#FFF" android:backgroundTint="#333" />
+                    <Button android:id="@+id/btnZoom" android:layout_width="wrap_content" android:layout_height="36dp" android:layout_marginStart="4dp" android:text="Fit" android:textSize="11sp" android:textColor="#FFF" android:backgroundTint="#333" />
+                    <Button android:id="@+id/btnRotate" android:layout_width="40dp" android:layout_height="36dp" android:layout_marginStart="4dp" android:text="⛶" android:textSize="13sp" android:textColor="#FFF" android:backgroundTint="#333" android:padding="0dp" />
+                    <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1" />
+                    <Button android:id="@+id/btnMenu" android:layout_width="40dp" android:layout_height="36dp" android:text="⋮" android:textSize="18sp" android:textColor="#FFF" android:backgroundTint="#444" android:padding="0dp" />
                 </LinearLayout>
             </LinearLayout>
 
@@ -394,11 +356,11 @@ jobs:
                 android:visibility="gone" />
         </RelativeLayout>
         EOF
-
         cat << 'EOF' > app/src/main/java/com/example/universalplayer/VideoItem.kt
         package com.example.universalplayer
         import android.net.Uri
-        data class VideoItem(val id: Long, val title: String, val duration: String, val uri: Uri)
+        import java.io.Serializable
+        data class VideoItem(val id: Long, val title: String, val duration: String, val uriString: String) : Serializable
         EOF
 
         cat << 'EOF' > app/src/main/java/com/example/universalplayer/VideoAdapter.kt
@@ -409,7 +371,7 @@ jobs:
         import android.widget.TextView
         import androidx.recyclerview.widget.RecyclerView
 
-        class VideoAdapter(private var list: List<VideoItem>, private val onClick: (VideoItem) -> Unit) : RecyclerView.Adapter<VideoAdapter.VH>() {
+        class VideoAdapter(private var list: List<VideoItem>, private val onClick: (Int) -> Unit) : RecyclerView.Adapter<VideoAdapter.VH>() {
             class VH(v: View) : RecyclerView.ViewHolder(v) {
                 val t: TextView = v.findViewById(R.id.txtTitle)
                 val d: TextView = v.findViewById(R.id.txtDuration)
@@ -419,12 +381,13 @@ jobs:
                 val item = list[pos]
                 h.t.text = item.title
                 h.d.text = item.duration
-                h.itemView.setOnClickListener { onClick(item) }
+                h.itemView.setOnClickListener { onClick(pos) }
             }
             override fun getItemCount() = list.size
             fun update(newList: List<VideoItem>) { list = newList; notifyDataSetChanged() }
         }
         EOF
+
         cat << 'EOF' > app/src/main/java/com/example/universalplayer/MainActivity.kt
         package com.example.universalplayer
         import android.Manifest
@@ -448,10 +411,16 @@ jobs:
         class MainActivity : AppCompatActivity() {
             private lateinit var rv: RecyclerView
             private lateinit var adapter: VideoAdapter
-            private val allVideos = mutableListOf<VideoItem>()
+            private val allVideos = ArrayList<VideoItem>()
 
             private val pickVideo = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { res ->
-                if (res.resultCode == RESULT_OK) res.data?.data?.let { launchPlayer(it, "Custom Video") }
+                if (res.resultCode == RESULT_OK) res.data?.data?.let {
+                    val single = arrayListOf(VideoItem(0, "Custom Video", "00:00", it.toString()))
+                    startActivity(Intent(this, PlayerActivity::class.java).apply {
+                        putExtra("VIDEO_LIST", single)
+                        putExtra("VIDEO_INDEX", 0)
+                    })
+                }
             }
             private val reqPerms = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { map ->
                 if (map.values.any { it }) loadVideos()
@@ -462,7 +431,12 @@ jobs:
                 setContentView(R.layout.activity_main)
                 rv = findViewById(R.id.recyclerViewVideos)
                 rv.layoutManager = LinearLayoutManager(this)
-                adapter = VideoAdapter(allVideos) { launchPlayer(it.uri, it.title) }
+                adapter = VideoAdapter(allVideos) { idx ->
+                    startActivity(Intent(this, PlayerActivity::class.java).apply {
+                        putExtra("VIDEO_LIST", allVideos)
+                        putExtra("VIDEO_INDEX", idx)
+                    })
+                }
                 rv.adapter = adapter
 
                 findViewById<Button>(R.id.btnOpenFile).setOnClickListener {
@@ -478,13 +452,6 @@ jobs:
                     override fun afterTextChanged(e: Editable?) {}
                 })
                 checkPerms()
-            }
-
-            private fun launchPlayer(uri: android.net.Uri, title: String) {
-                startActivity(Intent(this, PlayerActivity::class.java).apply {
-                    putExtra("VIDEO_URI", uri.toString())
-                    putExtra("VIDEO_TITLE", title)
-                })
             }
 
             private fun checkPerms() {
@@ -505,14 +472,14 @@ jobs:
                         val id = c.getLong(idCol)
                         val ms = c.getLong(durCol)
                         val dur = String.format("%02d:%02d", TimeUnit.MILLISECONDS.toMinutes(ms), TimeUnit.MILLISECONDS.toSeconds(ms) % 60)
-                        allVideos.add(VideoItem(id, c.getString(nameCol) ?: "Video", dur, ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id)))
+                        val u = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id).toString()
+                        allVideos.add(VideoItem(id, c.getString(nameCol) ?: "Video", dur, u))
                     }
                 }
                 adapter.update(allVideos)
             }
         }
         EOF
-
         cat << 'EOF' > app/src/main/java/com/example/universalplayer/PlayerActivity.kt
         package com.example.universalplayer
         import android.app.PictureInPictureParams
@@ -558,9 +525,10 @@ jobs:
             private lateinit var am: AudioManager
             private lateinit var gd: GestureDetector
 
-            private var curUri: Uri? = null
-            private var curTitle: String = "audio"
+            private var videoList = ArrayList<VideoItem>()
+            private var curIdx = 0
             private var maxVol = 15
+            private var volAccumulator = 0f
             private var curBri = 0.5f
             private var isLand = false
             private var isLock = false
@@ -597,14 +565,22 @@ jobs:
                 maxVol = am.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
                 registerReceiver(batteryReceiver, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
 
+                val list = intent.getSerializableExtra("VIDEO_LIST") as? ArrayList<VideoItem>
+                if (list != null) videoList = list
+                curIdx = intent.getIntExtra("VIDEO_INDEX", 0)
+
                 updateClock()
                 setupClicks()
                 setupGestures()
+                playVideoAtIndex(curIdx)
+            }
 
-                val uStr = intent.getStringExtra("VIDEO_URI") ?: return
-                curTitle = intent.getStringExtra("VIDEO_TITLE") ?: "audio"
-                curUri = Uri.parse(uStr)
-                initPlayer(curUri!!)
+            private fun playVideoAtIndex(idx: Int) {
+                if (videoList.isEmpty() || idx !in 0 until videoList.size) return
+                curIdx = idx
+                val item = videoList[curIdx]
+                initPlayer(Uri.parse(item.uriString))
+                show(item.title)
             }
 
             private fun updateClock() {
@@ -626,6 +602,12 @@ jobs:
                         if (it.isPlaying) { it.pause(); btnPlay.text = "▶" }
                         else { it.play(); btnPlay.text = "⏸" }
                     }
+                }
+                findViewById<Button>(R.id.btnPrev).setOnClickListener {
+                    if (curIdx > 0) playVideoAtIndex(curIdx - 1) else show("No previous video")
+                }
+                findViewById<Button>(R.id.btnNext).setOnClickListener {
+                    if (curIdx < videoList.size - 1) playVideoAtIndex(curIdx + 1) else show("No next video")
                 }
                 findViewById<Button>(R.id.btnSpeed).setOnClickListener { showSpeedDialog() }
                 findViewById<Button>(R.id.btnZoom).setOnClickListener {
@@ -677,7 +659,13 @@ jobs:
                             }
                             show(if (ccOn) "CC ON" else "CC OFF")
                         }
-                        3 -> curUri?.let { u -> show("Saving MP3..."); thread { saveAudio(u, curTitle) } }
+                        3 -> {
+                            if (videoList.isNotEmpty()) {
+                                val item = videoList[curIdx]
+                                show("Saving MP3...")
+                                thread { saveAudio(Uri.parse(item.uriString), item.title) }
+                            }
+                        }
                         4 -> show("Settings - Default Engine")
                     }
                     true
@@ -706,6 +694,7 @@ jobs:
             }
 
             private fun initPlayer(uri: Uri) {
+                player?.release()
                 val rf = DefaultRenderersFactory(this).setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER)
                 val ef = DefaultExtractorsFactory().setConstantBitrateSeekingEnabled(true).setTsExtractorFlags(DefaultTsPayloadReaderFactory.FLAG_ALLOW_NON_IDR_KEYFRAMES)
                 player = ExoPlayer.Builder(this, rf).setMediaSourceFactory(androidx.media3.exoplayer.source.DefaultMediaSourceFactory(this, ef)).build()
@@ -721,6 +710,7 @@ jobs:
                 })
                 player?.setMediaItem(MediaItem.fromUri(uri))
                 player?.prepare(); player?.play()
+                btnPlay.text = "⏸"
             }
 
             private fun updateProgress() {
@@ -814,13 +804,17 @@ jobs:
                     override fun onScroll(e1: MotionEvent?, e2: MotionEvent, dx: Float, dy: Float): Boolean {
                         if (isLock || e1 == null || abs(dy) <= abs(dx)) return false
                         if (e1.x > resources.displayMetrics.widthPixels / 2) {
-                            val cur = am.getStreamVolume(AudioManager.STREAM_MUSIC)
-                            val step = if (dy > 0) 1 else -1
-                            val v = (cur + step).coerceIn(0, maxVol)
-                            am.setStreamVolume(AudioManager.STREAM_MUSIC, v, AudioManager.FLAG_SHOW_UI)
-                            show("Vol: ${(v * 100) / maxVol}%")
+                            volAccumulator += dy
+                            val step = (volAccumulator / 1500f).toInt()
+                            if (step != 0) {
+                                val cur = am.getStreamVolume(AudioManager.STREAM_MUSIC)
+                                val target = (cur + step).coerceIn(0, maxVol)
+                                am.setStreamVolume(AudioManager.STREAM_MUSIC, target, 0)
+                                volAccumulator -= (step * 1500f)
+                                show("Vol: ${(target * 100) / maxVol}%")
+                            }
                         } else {
-                            curBri = (curBri + (dy / 1200f)).coerceIn(0.01f, 1.0f)
+                            curBri = (curBri + (dy / 2500f)).coerceIn(0.01f, 1.0f)
                             window.attributes = window.attributes.apply { screenBrightness = curBri }
                             show("Bri: ${(curBri * 100).toInt()}%")
                         }
@@ -829,7 +823,10 @@ jobs:
                 })
                 pv.setOnTouchListener { _, ev ->
                     gd.onTouchEvent(ev)
-                    if (ev.action == MotionEvent.ACTION_UP) txtInd.postDelayed({ txtInd.visibility = View.GONE }, 1000)
+                    if (ev.action == MotionEvent.ACTION_UP) {
+                        volAccumulator = 0f
+                        txtInd.postDelayed({ txtInd.visibility = View.GONE }, 1000)
+                    }
                     true
                 }
             }
