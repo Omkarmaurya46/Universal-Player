@@ -76,8 +76,8 @@ jobs:
                 applicationId "com.example.universalplayer"
                 minSdk 26
                 targetSdk 34
-                versionCode 16
-                versionName "16.0"
+                versionCode 17
+                versionName "17.0"
             }
 
             buildTypes {
@@ -279,6 +279,7 @@ jobs:
         cat << 'EOF' > app/src/main/res/layout/activity_player.xml
         <?xml version="1.0" encoding="utf-8"?>
         <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
             android:id="@+id/playerRoot"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -1130,4 +1131,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: Video-Manager-Pro-APK
-        path: app/build/outputs/apk/debug/*.apk
+        path: app/build/outputs/apk/debug/*.apk 
