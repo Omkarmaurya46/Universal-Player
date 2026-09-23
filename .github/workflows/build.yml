@@ -76,8 +76,8 @@ jobs:
                 applicationId "com.example.universalplayer"
                 minSdk 26
                 targetSdk 34
-                versionCode 14
-                versionName "14.0"
+                versionCode 15
+                versionName "15.0"
             }
 
             buildTypes {
@@ -273,7 +273,7 @@ jobs:
                     android:text="🔋 100%" />
             </RelativeLayout>
 
-            <!-- 2. Screen Edges: Middle Left Lock & Middle Right Snap -->
+            <!-- 2. Screen Edges: Lock & Snap -->
             <Button
                 android:id="@+id/btnLock"
                 android:layout_width="40dp"
@@ -300,22 +300,24 @@ jobs:
                 android:backgroundTint="#80000000"
                 android:padding="0dp" />
 
-            <!-- 3. Bottom Control Bar -->
+            <!-- 3. Bottom Controls: Completely Centered -->
             <LinearLayout
                 android:id="@+id/bottomBar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_alignParentBottom="true"
                 android:orientation="vertical"
+                android:gravity="center_horizontal"
                 android:padding="8dp"
                 android:background="#B3000000">
 
-                <!-- 1st Row: Seekbar & Duration -->
+                <!-- Row 1: Seekbar & Time -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:gravity="center_vertical">
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="4dp">
                     <TextView
                         android:id="@+id/txtTime"
                         android:layout_width="wrap_content"
@@ -332,30 +334,29 @@ jobs:
                         android:thumbTint="#00E676" />
                 </LinearLayout>
 
-                <!-- 2nd Row (Right Above Bottom Row): Big Centered Prev, Play/Pause, Next -->
+                <!-- Row 2: Centered Prev, Play/Pause, Next -->
                 <LinearLayout
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:gravity="center"
                     android:layout_marginTop="2dp"
                     android:layout_marginBottom="4dp">
-                    <Button android:id="@+id/btnPrev" android:layout_width="50dp" android:layout_height="38dp" android:text="⏮" android:textSize="18sp" android:textColor="#FFF" android:backgroundTint="#333" android:padding="0dp" />
-                    <Button android:id="@+id/btnPlayPause" android:layout_width="58dp" android:layout_height="38dp" android:layout_marginStart="16dp" android:text="⏸" android:textSize="18sp" android:textColor="#FFF" android:backgroundTint="#333" android:padding="0dp" />
-                    <Button android:id="@+id/btnNext" android:layout_width="50dp" android:layout_height="38dp" android:layout_marginStart="16dp" android:text="⏭" android:textSize="18sp" android:textColor="#FFF" android:backgroundTint="#333" android:padding="0dp" />
+                    <Button android:id="@+id/btnPrev" android:layout_width="48dp" android:layout_height="36dp" android:text="⏮" android:textSize="17sp" android:textColor="#FFF" android:backgroundTint="#333" android:padding="0dp" />
+                    <Button android:id="@+id/btnPlayPause" android:layout_width="56dp" android:layout_height="36dp" android:layout_marginStart="14dp" android:text="⏸" android:textSize="17sp" android:textColor="#FFF" android:backgroundTint="#333" android:padding="0dp" />
+                    <Button android:id="@+id/btnNext" android:layout_width="48dp" android:layout_height="36dp" android:layout_marginStart="14dp" android:text="⏭" android:textSize="17sp" android:textColor="#FFF" android:backgroundTint="#333" android:padding="0dp" />
                 </LinearLayout>
 
-                <!-- 3rd Row (Bottom Line): Compact Options & Three Dots (⋮) -->
+                <!-- Row 3: Centered Speed, Fit, Rotate, Three-Dots -->
                 <LinearLayout
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:gravity="center_vertical">
-                    <Button android:id="@+id/btnSpeed" android:layout_width="wrap_content" android:layout_height="32dp" android:text="SPEED" android:textSize="10sp" android:textColor="#FFF" android:backgroundTint="#262626" android:paddingHorizontal="8dp" />
-                    <Button android:id="@+id/btnZoom" android:layout_width="wrap_content" android:layout_height="32dp" android:layout_marginStart="6dp" android:text="FIT" android:textSize="10sp" android:textColor="#FFF" android:backgroundTint="#262626" android:paddingHorizontal="8dp" />
-                    <Button android:id="@+id/btnRotate" android:layout_width="36dp" android:layout_height="32dp" android:layout_marginStart="6dp" android:text="⛶" android:textSize="12sp" android:textColor="#FFF" android:backgroundTint="#262626" android:padding="0dp" />
-                    <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1" />
-                    <Button android:id="@+id/btnMenu" android:layout_width="40dp" android:layout_height="32dp" android:text="⋮" android:textSize="18sp" android:textColor="#00E676" android:backgroundTint="#383838" android:padding="0dp" />
+                    android:gravity="center">
+                    <Button android:id="@+id/btnSpeed" android:layout_width="wrap_content" android:layout_height="32dp" android:text="SPEED" android:textSize="10sp" android:textColor="#FFF" android:backgroundTint="#262626" android:paddingHorizontal="10dp" />
+                    <Button android:id="@+id/btnZoom" android:layout_width="wrap_content" android:layout_height="32dp" android:layout_marginStart="8dp" android:text="FIT" android:textSize="10sp" android:textColor="#FFF" android:backgroundTint="#262626" android:paddingHorizontal="10dp" />
+                    <Button android:id="@+id/btnRotate" android:layout_width="38dp" android:layout_height="32dp" android:layout_marginStart="8dp" android:text="⛶" android:textSize="12sp" android:textColor="#FFF" android:backgroundTint="#262626" android:padding="0dp" />
+                    <Button android:id="@+id/btnMenu" android:layout_width="38dp" android:layout_height="32dp" android:layout_marginStart="8dp" android:text="⋮" android:textSize="18sp" android:textColor="#00E676" android:backgroundTint="#262626" android:padding="0dp" />
                 </LinearLayout>
             </LinearLayout>
 
@@ -367,7 +368,7 @@ jobs:
                 android:padding="12dp"
                 android:background="#CC000000"
                 android:textColor="#FFFFFF"
-                android:textSize="15sp"
+                android:textSize="16sp"
                 android:textStyle="bold"
                 android:visibility="gone" />
         </RelativeLayout>
@@ -549,6 +550,8 @@ jobs:
             private var isLock = false
             private var ccOn = true
             private var zoomMode = 0
+            private var swipeSeekPos = 0L
+            private var isSeekingViaSwipe = false
             private val handler = Handler(Looper.getMainLooper())
 
             private val batteryReceiver = object : BroadcastReceiver() {
@@ -811,13 +814,30 @@ jobs:
                         if (isLock) return false
                         val fwd = e.x > resources.displayMetrics.widthPixels / 2
                         player?.seekTo(if (fwd) (player?.currentPosition ?: 0) + 10000 else maxOf((player?.currentPosition ?: 0) - 10000, 0))
-                        show(if (fwd) "+10s" else "-10s")
+                        show(if (fwd) ">> +10s" else "<< -10s")
                         return true
                     }
 
                     override fun onScroll(e1: MotionEvent?, e2: MotionEvent, dx: Float, dy: Float): Boolean {
-                        if (isLock || e1 == null || abs(dy) <= abs(dx)) return false
-                        if (e1.x > resources.displayMetrics.widthPixels / 2) {
+                        if (isLock || e1 == null) return false
+                        val width = resources.displayMetrics.widthPixels
+                        val dur = player?.duration ?: 0L
+
+                        // Horizontal swipe for Video Seeking (<< / >>)
+                        if (abs(dx) > abs(dy)) {
+                            if (!isSeekingViaSwipe) {
+                                isSeekingViaSwipe = true
+                                swipeSeekPos = player?.currentPosition ?: 0L
+                            }
+                            val seekStep = (-dx * 200).toLong()
+                            swipeSeekPos = (swipeSeekPos + seekStep).coerceIn(0L, dur)
+                            val icon = if (dx < 0) ">>" else "<<"
+                            show("$icon ${fmtTime(swipeSeekPos)} / ${fmtTime(dur)}")
+                            return true
+                        }
+
+                        // Vertical swipe for Volume & Brightness
+                        if (e1.x > width / 2) {
                             curVolProgress = (curVolProgress + (dy / 70f)).coerceIn(0f, maxVol.toFloat())
                             val targetInt = curVolProgress.toInt()
                             am.setStreamVolume(AudioManager.STREAM_MUSIC, targetInt, 0)
@@ -831,9 +851,14 @@ jobs:
                         return true
                     }
                 })
+
                 pv.setOnTouchListener { _, ev ->
                     gd.onTouchEvent(ev)
                     if (ev.action == MotionEvent.ACTION_UP) {
+                        if (isSeekingViaSwipe) {
+                            player?.seekTo(swipeSeekPos)
+                            isSeekingViaSwipe = false
+                        }
                         txtInd.postDelayed({ txtInd.visibility = View.GONE }, 1000)
                     }
                     true
