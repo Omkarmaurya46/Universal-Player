@@ -252,7 +252,7 @@ jobs:
                 android:visibility="gone" />
         </RelativeLayout>
         EOF
-                cat << 'EOF' > app/src/main/java/com/example/universalplayer/VideoItem.kt
+        cat << 'EOF' > app/src/main/java/com/example/universalplayer/VideoItem.kt
         package com.example.universalplayer
 
         import android.net.Uri
@@ -577,4 +577,3 @@ jobs:
       with:
         name: UniversalVideoPlayer-Final-APK
         path: app/build/outputs/apk/debug/*.apk
-        
