@@ -76,8 +76,8 @@ jobs:
                 applicationId "com.example.universalplayer"
                 minSdk 24
                 targetSdk 34
-                versionCode 4
-                versionName "4.0"
+                versionCode 5
+                versionName "5.0"
             }
 
             buildTypes {
@@ -227,6 +227,7 @@ jobs:
         <?xml version="1.0" encoding="utf-8"?>
         <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/playerRoot"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="#000000">
@@ -238,6 +239,34 @@ jobs:
                 app:use_controller="true"
                 app:show_buffering="always"
                 app:resize_mode="fit" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentEnd="true"
+                android:padding="16dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnZoomToggle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:text="Fit"
+                    android:textSize="12sp"
+                    android:textColor="#FFFFFF"
+                    android:backgroundTint="#333333" />
+
+                <Button
+                    android:id="@+id/btnRotateToggle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:layout_marginStart="8dp"
+                    android:text="Rotate"
+                    android:textSize="12sp"
+                    android:textColor="#FFFFFF"
+                    android:backgroundTint="#333333" />
+            </LinearLayout>
 
             <TextView
                 android:id="@+id/txtIndicator"
@@ -329,7 +358,7 @@ jobs:
                     res.data?.data?.let { uri ->
                         val intent = Intent(this, PlayerActivity::class.java).apply {
                             putExtra("VIDEO_URI", uri.toString())
-                            putExtra("VIDEO_TITLE", "Video")
+                            putExtra("VIDEO_TITLE", "Custom Video")
                         }
                         startActivity(intent)
                     }
@@ -423,13 +452,16 @@ jobs:
         package com.example.universalplayer
 
         import android.content.Context
+        import android.content.pm.ActivityInfo
         import android.media.AudioManager
         import android.net.Uri
         import android.os.Bundle
         import android.view.GestureDetector
         import android.view.MotionEvent
+        import android.view.ScaleGestureDetector
         import android.view.View
         import android.view.WindowManager
+        import android.widget.Button
         import android.widget.TextView
         import android.widget.Toast
         import androidx.appcompat.app.AppCompatActivity
@@ -440,6 +472,7 @@ jobs:
         import androidx.media3.exoplayer.ExoPlayer
         import androidx.media3.extractor.DefaultExtractorsFactory
         import androidx.media3.extractor.ts.DefaultTsPayloadReaderFactory
+        import androidx.media3.ui.AspectRatioFrameLayout
         import androidx.media3.ui.PlayerView
         import kotlin.math.abs
 
@@ -450,9 +483,12 @@ jobs:
             private lateinit var txtIndicator: TextView
             private lateinit var audioManager: AudioManager
             private lateinit var gestureDetector: GestureDetector
+            private lateinit var scaleGestureDetector: ScaleGestureDetector
 
             private var maxVolume = 15
             private var currentBrightness = 0.5f
+            private var isLandscape = false
+            private var currentResizeMode = 0 // 0: Fit, 1: Fill/Zoom, 2: Fixed Height
 
             override fun onCreate(savedInstanceState: Bundle?) {
                 super.onCreate(savedInstanceState)
@@ -461,10 +497,40 @@ jobs:
 
                 playerView = findViewById(R.id.playerView)
                 txtIndicator = findViewById(R.id.txtIndicator)
+                val btnZoom = findViewById<Button>(R.id.btnZoomToggle)
+                val btnRotate = findViewById<Button>(R.id.btnRotateToggle)
+
                 audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
                 maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
 
-                setupGestures()
+                btnRotate.setOnClickListener {
+                    isLandscape = !isLandscape
+                    requestedOrientation = if (isLandscape) {
+                        ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+                    } else {
+                        ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                    }
+                }
+
+                btnZoom.setOnClickListener {
+                    currentResizeMode = (currentResizeMode + 1) % 3
+                    when (currentResizeMode) {
+                        0 -> {
+                            playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
+                            btnZoom.text = "Fit"
+                        }
+                        1 -> {
+                            playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
+                            btnZoom.text = "Zoom"
+                        }
+                        2 -> {
+                            playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FILL
+                            btnZoom.text = "Stretch"
+                        }
+                    }
+                }
+
+                setupTouchAndGestures()
 
                 val uriStr = intent.getStringExtra("VIDEO_URI") ?: return
                 initPlayer(Uri.parse(uriStr))
@@ -476,7 +542,10 @@ jobs:
 
                 val extractorsFactory = DefaultExtractorsFactory()
                     .setConstantBitrateSeekingEnabled(true)
-                    .setTsExtractorFlags(DefaultTsPayloadReaderFactory.FLAG_ALLOW_NON_IDR_KEYFRAMES)
+                    .setTsExtractorFlags(
+                        DefaultTsPayloadReaderFactory.FLAG_ALLOW_NON_IDR_KEYFRAMES or
+                        DefaultTsPayloadReaderFactory.FLAG_DETECT_ACCESS_UNITS
+                    )
 
                 player = ExoPlayer.Builder(this, renderersFactory)
                     .setMediaSourceFactory(
@@ -487,7 +556,7 @@ jobs:
                 playerView.player = player
                 player?.addListener(object : Player.Listener {
                     override fun onPlayerError(error: PlaybackException) {
-                        Toast.makeText(this@PlayerActivity, "Playback error: ${error.message}", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@PlayerActivity, "Error: ${error.message}", Toast.LENGTH_SHORT).show()
                     }
                 })
 
@@ -496,8 +565,34 @@ jobs:
                 player?.play()
             }
 
-            private fun setupGestures() {
+            private fun setupTouchAndGestures() {
+                scaleGestureDetector = ScaleGestureDetector(this, object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
+                    override fun onScale(detector: ScaleGestureDetector): Boolean {
+                        val factor = detector.scaleFactor
+                        if (factor > 1.1f) {
+                            playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
+                            showIndicator("Zoom In")
+                        } else if (factor < 0.9f) {
+                            playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
+                            showIndicator("Fit Screen")
+                        }
+                        return true
+                    }
+                })
+
                 gestureDetector = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
+                    override fun onDoubleTap(e: MotionEvent): Boolean {
+                        val screenWidth = resources.displayMetrics.widthPixels
+                        if (e.x > screenWidth / 2) {
+                            player?.seekTo((player?.currentPosition ?: 0) + 10000)
+                            showIndicator("+10s")
+                        } else {
+                            player?.seekTo(maxOf((player?.currentPosition ?: 0) - 10000, 0))
+                            showIndicator("-10s")
+                        }
+                        return true
+                    }
+
                     override fun onScroll(e1: MotionEvent?, e2: MotionEvent, distanceX: Float, distanceY: Float): Boolean {
                         if (e1 == null) return false
                         val deltaY = e1.y - e2.y
@@ -506,9 +601,20 @@ jobs:
 
                         if (abs(distanceY) > abs(distanceX)) {
                             if (isRightSide) {
-                                adjustVolume(deltaY)
+                                val currentVol = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+                                val change = (deltaY / 250).toInt()
+                                val targetVol = (currentVol + change).coerceIn(0, maxVolume)
+                                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, targetVol, 0)
+                                val pct = (targetVol * 100) / maxVolume
+                                showIndicator("Volume: $pct%")
                             } else {
-                                adjustBrightness(deltaY)
+                                val layoutParams = window.attributes
+                                val change = deltaY / 1200f
+                                currentBrightness = (currentBrightness + change).coerceIn(0.01f, 1.0f)
+                                layoutParams.screenBrightness = currentBrightness
+                                window.attributes = layoutParams
+                                val pct = (currentBrightness * 100).toInt()
+                                showIndicator("Brightness: $pct%")
                             }
                             return true
                         }
@@ -517,34 +623,17 @@ jobs:
                 })
 
                 playerView.setOnTouchListener { _, event ->
-                    if (event.action == MotionEvent.ACTION_UP) {
-                        txtIndicator.visibility = View.GONE
-                    }
+                    scaleGestureDetector.onTouchEvent(event)
                     gestureDetector.onTouchEvent(event)
+                    if (event.action == MotionEvent.ACTION_UP) {
+                        txtIndicator.postDelayed({ txtIndicator.visibility = View.GONE }, 800)
+                    }
                     false
                 }
             }
 
-            private fun adjustVolume(deltaY: Float) {
-                val currentVol = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
-                val change = (deltaY / 250).toInt()
-                val targetVol = (currentVol + change).coerceIn(0, maxVolume)
-                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, targetVol, 0)
-
-                val percentage = (targetVol * 100) / maxVolume
-                txtIndicator.text = "Volume: $percentage%"
-                txtIndicator.visibility = View.VISIBLE
-            }
-
-            private fun adjustBrightness(deltaY: Float) {
-                val layoutParams = window.attributes
-                val change = deltaY / 1200f
-                currentBrightness = (currentBrightness + change).coerceIn(0.01f, 1.0f)
-                layoutParams.screenBrightness = currentBrightness
-                window.attributes = layoutParams
-
-                val percentage = (currentBrightness * 100).toInt()
-                txtIndicator.text = "Brightness: $percentage%"
+            private fun showIndicator(text: String) {
+                txtIndicator.text = text
                 txtIndicator.visibility = View.VISIBLE
             }
 
@@ -562,5 +651,5 @@ jobs:
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: UniversalVideoPlayer-Final-APK
+        name: UniversalVideoPlayer-Pro-APK
         path: app/build/outputs/apk/debug/*.apk
