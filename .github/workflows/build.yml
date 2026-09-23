@@ -76,8 +76,8 @@ jobs:
                 applicationId "com.example.universalplayer"
                 minSdk 24
                 targetSdk 34
-                versionCode 3
-                versionName "3.0"
+                versionCode 4
+                versionName "4.0"
             }
 
             buildTypes {
@@ -240,7 +240,7 @@ jobs:
                 app:resize_mode="fit" />
 
             <TextView
-                android:id="@+id/txtGestureIndicator"
+                android:id="@+id/txtIndicator"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerInParent="true"
@@ -329,7 +329,7 @@ jobs:
                     res.data?.data?.let { uri ->
                         val intent = Intent(this, PlayerActivity::class.java).apply {
                             putExtra("VIDEO_URI", uri.toString())
-                            putExtra("VIDEO_TITLE", "Custom Video")
+                            putExtra("VIDEO_TITLE", "Video")
                         }
                         startActivity(intent)
                     }
@@ -340,7 +340,7 @@ jobs:
                 if (map.values.any { it }) {
                     loadVideos()
                 } else {
-                    Toast.makeText(this, "Storage permission is needed to show videos", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, "Permission required to list videos", Toast.LENGTH_LONG).show()
                 }
             }
 
@@ -397,7 +397,7 @@ jobs:
 
                     while (cursor.moveToNext()) {
                         val id = cursor.getLong(idCol)
-                        val name = cursor.getString(nameCol) ?: "Unknown"
+                        val name = cursor.getString(nameCol) ?: "Video"
                         val durMs = cursor.getLong(durCol)
                         val durStr = String.format("%02d:%02d",
                             TimeUnit.MILLISECONDS.toMinutes(durMs),
@@ -439,8 +439,6 @@ jobs:
         import androidx.media3.exoplayer.DefaultRenderersFactory
         import androidx.media3.exoplayer.ExoPlayer
         import androidx.media3.extractor.DefaultExtractorsFactory
-        import androidx.media3.extractor.mp4.FragmentedMp4Extractor
-        import androidx.media3.extractor.mp4.Mp4Extractor
         import androidx.media3.extractor.ts.DefaultTsPayloadReaderFactory
         import androidx.media3.ui.PlayerView
         import kotlin.math.abs
@@ -478,18 +476,7 @@ jobs:
 
                 val extractorsFactory = DefaultExtractorsFactory()
                     .setConstantBitrateSeekingEnabled(true)
-                    .setMp4ExtractorFlags(
-                        Mp4Extractor.FLAG_WORKAROUND_IGNORE_EDIT_LISTS or 
-                        Mp4Extractor.FLAG_READ_SEF_DATA
-                    )
-                    .setFragmentedMp4ExtractorFlags(
-                        FragmentedMp4Extractor.FLAG_WORKAROUND_IGNORE_TFDT_BOX or
-                        FragmentedMp4Extractor.FLAG_WORKAROUND_IGNORE_EDIT_LISTS
-                    )
-                    .setTsExtractorFlags(
-                        DefaultTsPayloadReaderFactory.FLAG_ALLOW_NON_IDR_KEYFRAMES or
-                        DefaultTsPayloadReaderFactory.FLAG_DETECT_ACCESS_UNITS
-                    )
+                    .setTsExtractorFlags(DefaultTsPayloadReaderFactory.FLAG_ALLOW_NON_IDR_KEYFRAMES)
 
                 player = ExoPlayer.Builder(this, renderersFactory)
                     .setMediaSourceFactory(
