@@ -19,15 +19,16 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Setup Android SDK
-      uses: android-actions/setup-android@v3
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v3
+      with:
+        gradle-version: '8.5'
 
     - name: Generate Full Android Project
       run: |
         mkdir -p app/src/main/java/com/example/universalplayer
         mkdir -p app/src/main/res/layout
         mkdir -p app/src/main/res/values
-        mkdir -p gradle/wrapper
 
         # settings.gradle
         cat << 'EOF' > settings.gradle
@@ -132,7 +133,7 @@ jobs:
         </manifest>
         EOF
 
-        # Strings & Themes
+        # Strings
         cat << 'EOF' > app/src/main/res/values/strings.xml
         <resources>
             <string name="app_name">Universal Player</string>
@@ -167,7 +168,7 @@ jobs:
         </androidx.constraintlayout.widget.ConstraintLayout>
         EOF
 
-        # MainActivity.kt (Handles regular files & Playit header repair)
+        # MainActivity.kt
         cat << 'EOF' > app/src/main/java/com/example/universalplayer/MainActivity.kt
         package com.example.universalplayer
 
@@ -234,13 +235,8 @@ jobs:
         }
         EOF
 
-        # Install Gradle Wrapper
-        gradle wrapper --gradle-version 8.5
-
-    - name: Build Debug APK
-      run: |
-        chmod +x gradlew
-        ./gradlew assembleDebug
+    - name: Build Debug APK with Gradle
+      run: gradle assembleDebug
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
