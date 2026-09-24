@@ -1,4 +1,4 @@
-name: Build Video Player APK
+name: Build Video Manager APK
 
 on:
   push:
@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
     - name: Checkout Code
       uses: actions/checkout@v4
 
@@ -24,13 +25,16 @@ jobs:
       with:
         gradle-version: '8.5'
 
-    - name: Generate Full Android Video Player Project
+    - name: Generate Android Video Player Project
+      shell: bash
       run: |
+
         mkdir -p app/src/main/java/com/example/universalplayer
         mkdir -p app/src/main/res/layout
         mkdir -p app/src/main/res/values
 
-        cat << 'EOF' > settings.gradle
+        cat <<'EOF' > settings.gradle
+
         pluginManagement {
             repositories {
                 google()
@@ -38,6 +42,7 @@ jobs:
                 gradlePluginPortal()
             }
         }
+
         dependencyResolutionManagement {
             repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
             repositories {
@@ -45,24 +50,31 @@ jobs:
                 mavenCentral()
             }
         }
-        rootProject.name = "Video"
-        include ':app'
+
+        rootProject.name = "VideoManager"
+        include(":app")
+
         EOF
 
-        cat << 'EOF' > build.gradle
+        cat <<'EOF' > build.gradle
+
         plugins {
             id 'com.android.application' version '8.2.2' apply false
             id 'org.jetbrains.kotlin.android' version '1.9.22' apply false
         }
+
         EOF
 
-        cat << 'EOF' > gradle.properties
+        cat <<'EOF' > gradle.properties
+
         org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
         android.useAndroidX=true
         android.nonTransitiveRClass=true
+
         EOF
 
-        cat << 'EOF' > app/build.gradle
+        cat <<'EOF' > app/build.gradle
+
         plugins {
             id 'com.android.application'
             id 'org.jetbrains.kotlin.android'
@@ -76,8 +88,8 @@ jobs:
                 applicationId "com.example.universalplayer"
                 minSdk 26
                 targetSdk 34
-                versionCode 22
-                versionName "22.0"
+                versionCode 23
+                versionName "23.0"
             }
 
             buildTypes {
@@ -85,68 +97,87 @@ jobs:
                     minifyEnabled false
                 }
             }
+
             compileOptions {
                 sourceCompatibility JavaVersion.VERSION_17
                 targetCompatibility JavaVersion.VERSION_17
             }
+
             kotlinOptions {
                 jvmTarget = '17'
             }
         }
 
         dependencies {
-            implementation 'androidx.core:core-ktx:1.12.0'
-            implementation 'androidx.appcompat:appcompat:1.6.1'
-            implementation 'com.google.android.material:material:1.11.0'
+            implementation 'androidx.core:core-ktx:1.13.1'
+            implementation 'androidx.appcompat:appcompat:1.7.0'
+            implementation 'com.google.android.material:material:1.12.0'
             implementation 'androidx.recyclerview:recyclerview:1.3.2'
             implementation 'androidx.media3:media3-exoplayer:1.2.1'
             implementation 'androidx.media3:media3-ui:1.2.1'
             implementation 'androidx.media3:media3-common:1.2.1'
             implementation 'androidx.media3:media3-extractor:1.2.1'
         }
+
         EOF
 
-        cat << 'EOF' > app/src/main/AndroidManifest.xml
+        cat <<'EOF' > app/src/main/AndroidManifest.xml
+
         <?xml version="1.0" encoding="utf-8"?>
+
         <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-            <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
-            <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
-            <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-            <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
-            <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
-            <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
+
+            <uses-permission
+                android:name="android.permission.READ_EXTERNAL_STORAGE"
+                android:maxSdkVersion="32" />
+
+            <uses-permission
+                android:name="android.permission.READ_MEDIA_VIDEO" />
+
             <application
                 android:allowBackup="true"
                 android:icon="@android:drawable/ic_media_play"
-                android:label="Video"
-                android:requestLegacyExternalStorage="true"
+                android:label="@string/app_name"
                 android:theme="@style/Theme.AppCompat.NoActionBar">
+
                 <activity
                     android:name=".MainActivity"
                     android:exported="true"
                     android:configChanges="orientation|screenSize">
+
                     <intent-filter>
                         <action android:name="android.intent.action.MAIN" />
                         <category android:name="android.intent.category.LAUNCHER" />
                     </intent-filter>
+
                 </activity>
+
                 <activity
                     android:name=".PlayerActivity"
                     android:exported="false"
                     android:supportsPictureInPicture="true"
                     android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation" />
+
             </application>
+
         </manifest>
+
         EOF
 
-        cat << 'EOF' > app/src/main/res/values/strings.xml
+        cat <<'EOF' > app/src/main/res/values/strings.xml
+
         <resources>
-            <string name="app_name">Video</string>
+            <string name="app_name">Video Manager</string>
         </resources>
+
         EOF
-        cat << 'EOF' > app/src/main/res/layout/activity_main.xml
+
+        cat <<'EOF' > app/src/main/res/layout/activity_main.xml
+
         <?xml version="1.0" encoding="utf-8"?>
-        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+        <LinearLayout
+            xmlns:android="http://schemas.android.com/apk/res/android"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
@@ -157,29 +188,33 @@ jobs:
                 android:layout_height="wrap_content"
                 android:padding="14dp"
                 android:gravity="center_vertical">
+
                 <TextView
                     android:id="@+id/txtHeaderTitle"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Video Manager"
+                    android:text="All Videos"
                     android:textColor="#FFFFFF"
                     android:textSize="20sp"
                     android:textStyle="bold" />
+
                 <Button
                     android:id="@+id/btnOpenFile"
                     android:layout_width="wrap_content"
                     android:layout_height="36dp"
                     android:text="Open File"
                     android:textSize="11sp" />
+
                 <Button
                     android:id="@+id/btnRecycleBin"
                     android:layout_width="wrap_content"
                     android:layout_height="36dp"
                     android:layout_marginStart="6dp"
-                    android:text="🗑 Bin"
+                    android:text="Bin"
                     android:textSize="11sp"
                     android:backgroundTint="#B71C1C" />
+
             </LinearLayout>
 
             <LinearLayout
@@ -188,6 +223,7 @@ jobs:
                 android:orientation="horizontal"
                 android:paddingHorizontal="14dp"
                 android:layout_marginBottom="6dp">
+
                 <Button
                     android:id="@+id/tabVideos"
                     android:layout_width="0dp"
@@ -196,6 +232,7 @@ jobs:
                     android:text="Videos"
                     android:textColor="#00E676"
                     android:backgroundTint="#262626" />
+
                 <Button
                     android:id="@+id/tabFolders"
                     android:layout_width="0dp"
@@ -205,6 +242,7 @@ jobs:
                     android:text="All Folders"
                     android:textColor="#FFFFFF"
                     android:backgroundTint="#1F1F1F" />
+
             </LinearLayout>
 
             <EditText
@@ -217,7 +255,7 @@ jobs:
                 android:background="#222222"
                 android:textColor="#FFFFFF"
                 android:textColorHint="#888888"
-                android:hint="🔍 Search video by name..."
+                android:hint="Search video by name..."
                 android:singleLine="true"
                 android:textSize="14sp" />
 
@@ -225,30 +263,38 @@ jobs:
                 android:id="@+id/recyclerViewVideos"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
+
         </LinearLayout>
+
         EOF
 
-        cat << 'EOF' > app/src/main/res/layout/item_video.xml
+        c‍at <<'EOF' > app/src/main/res/layout/item_video.xml
+
         <?xml version="1.0" encoding="utf-8"?>
-        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+        <LinearLayout
+            xmlns:android="http://schemas.android.com/apk/res/android"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="10dp"
             android:gravity="center_vertical"
             android:background="?android:attr/selectableItemBackground">
+
             <ImageView
                 android:id="@+id/imgThumb"
-                android:layout_width="52dp"
+                android:layout_width="72dp"
                 android:layout_height="52dp"
                 android:scaleType="centerCrop"
                 android:src="@android:drawable/ic_media_play"
                 android:tint="#00E676" />
+
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="vertical"
                 android:layout_marginStart="12dp">
+
                 <TextView
                     android:id="@+id/txtTitle"
                     android:layout_width="match_parent"
@@ -258,6 +304,7 @@ jobs:
                     android:textStyle="bold"
                     android:maxLines="1"
                     android:ellipsize="end" />
+
                 <TextView
                     android:id="@+id/txtDuration"
                     android:layout_width="match_parent"
@@ -265,22 +312,29 @@ jobs:
                     android:textColor="#AAAAAA"
                     android:textSize="12sp"
                     android:layout_marginTop="2dp" />
+
             </LinearLayout>
+
             <Button
                 android:id="@+id/btnItemMenu"
                 android:layout_width="36dp"
                 android:layout_height="36dp"
                 android:text="⋮"
                 android:textSize="16sp"
-                android:textColor="#FFF"
+                android:textColor="#FFFFFF"
                 android:backgroundTint="#262626"
                 android:padding="0dp" />
+
         </LinearLayout>
+
         EOF
 
-        cat << 'EOF' > app/src/main/res/layout/activity_player.xml
+        cat <<'EOF' > app/src/main/res/layout/activity_player.xml
+
         <?xml version="1.0" encoding="utf-8"?>
-        <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+        <RelativeLayout
+            xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:app="http://schemas.android.com/apk/res-auto"
             android:id="@+id/playerRoot"
             android:layout_width="match_parent"
@@ -302,22 +356,23 @@ jobs:
                 android:layout_alignParentTop="true"
                 android:padding="12dp"
                 android:background="#80000000">
+
                 <TextView
                     android:id="@+id/txtClock"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_alignParentStart="true"
                     android:textColor="#FFFFFF"
-                    android:textSize="13sp"
-                    android:text="12:00 PM" />
+                    android:textSize="13sp" />
+
                 <TextView
                     android:id="@+id/txtBattery"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_alignParentEnd="true"
                     android:textColor="#FFFFFF"
-                    android:textSize="13sp"
-                    android:text="🔋 100%" />
+                    android:textSize="13sp" />
+
             </RelativeLayout>
 
             <Button
@@ -327,8 +382,8 @@ jobs:
                 android:layout_alignParentStart="true"
                 android:layout_centerVertical="true"
                 android:layout_marginStart="8dp"
-                android:text="🔒"
-                android:textSize="15sp"
+                android:text="Lock"
+                android:textSize="9sp"
                 android:textColor="#FFFFFF"
                 android:backgroundTint="#80000000"
                 android:padding="0dp" />
@@ -341,25 +396,28 @@ jobs:
                 android:layout_centerVertical="true"
                 android:layout_marginEnd="8dp"
                 android:orientation="vertical">
+
                 <Button
                     android:id="@+id/btnSnapshot"
-                    android:layout_width="40dp"
+                    android:layout_width="48dp"
                     android:layout_height="40dp"
-                    android:text="📸"
-                    android:textSize="15sp"
+                    android:text="Photo"
+                    android:textSize="8sp"
                     android:textColor="#FFFFFF"
                     android:backgroundTint="#80000000"
                     android:padding="0dp" />
+
                 <Button
                     android:id="@+id/btnPiP"
-                    android:layout_width="40dp"
+                    android:layout_width="48dp"
                     android:layout_height="40dp"
                     android:layout_marginTop="10dp"
-                    android:text="⧉"
-                    android:textSize="15sp"
+                    android:text="PiP"
+                    android:textSize="8sp"
                     android:textColor="#FFFFFF"
                     android:backgroundTint="#80000000"
                     android:padding="0dp" />
+
             </LinearLayout>
 
             <LinearLayout
@@ -376,15 +434,15 @@ jobs:
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:paddingHorizontal="4dp">
+                    android:gravity="center_vertical">
+
                     <TextView
                         android:id="@+id/txtTime"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textColor="#FFFFFF"
-                        android:textSize="11sp"
-                        android:text="00:00 / 00:00" />
+                        android:textSize="11sp" />
+
                     <SeekBar
                         android:id="@+id/seekBar"
                         android:layout_width="0dp"
@@ -392,6 +450,7 @@ jobs:
                         android:layout_weight="1"
                         android:progressTint="#00E676"
                         android:thumbTint="#00E676" />
+
                 </LinearLayout>
 
                 <LinearLayout
@@ -399,23 +458,94 @@ jobs:
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:gravity="center"
-                    android:layout_marginTop="2dp"
-                    android:layout_marginBottom="4dp">
-                    <Button android:id="@+id/btnPrev" android:layout_width="48dp" android:layout_height="36dp" android:text="⏮" android:textSize="17sp" android:textColor="#FFF" android:backgroundTint="#333" android:padding="0dp" />
-                    <Button android:id="@+id/btnPlayPause" android:layout_width="56dp" android:layout_height="36dp" android:layout_marginStart="14dp" android:text="⏸" android:textSize="17sp" android:textColor="#FFF" android:backgroundTint="#333" android:padding="0dp" />
-                    <Button android:id="@+id/btnNext" android:layout_width="48dp" android:layout_height="36dp" android:layout_marginStart="14dp" android:text="⏭" android:textSize="17sp" android:textColor="#FFF" android:backgroundTint="#333" android:padding="0dp" />
+                    android:layout_marginTop="2dp">
+
+                    <Button
+                        android:id="@+id/btnPrev"
+                        android:layout_width="48dp"
+                        android:layout_height="36dp"
+                        android:text="Prev"
+                        android:textSize="8sp"
+                        android:textColor="#FFFFFF"
+                        android:backgroundTint="#333333"
+                        android:padding="0dp" />
+
+                    <Button
+                        android:id="@+id/btnPlayPause"
+                        android:layout_width="60dp"
+                        android:layout_height="36dp"
+                        android:layout_marginStart="12dp"
+                        android:text="Play"
+                        android:textSize="9sp"
+                        android:textColor="#FFFFFF"
+                        android:backgroundTint="#333333"
+                        android:padding="0dp" />
+
+                    <Button
+                        android:id="@+id/btnNext"
+                        android:layout_width="48dp"
+                        android:layout_height="36dp"
+                        android:layout_marginStart="12dp"
+                        android:text="Next"
+                        android:textSize="8sp"
+                        android:textColor="#FFFFFF"
+                        android:backgroundTint="#333333"
+                        android:padding="0dp" />
+
                 </LinearLayout>
 
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:gravity="center">
-                    <Button android:id="@+id/btnSpeed" android:layout_width="wrap_content" android:layout_height="32dp" android:text="SPEED" android:textSize="10sp" android:textColor="#FFF" android:backgroundTint="#262626" android:paddingHorizontal="10dp" />
-                    <Button android:id="@+id/btnZoom" android:layout_width="wrap_content" android:layout_height="32dp" android:layout_marginStart="8dp" android:text="FIT" android:textSize="10sp" android:textColor="#FFF" android:backgroundTint="#262626" android:paddingHorizontal="10dp" />
-                    <Button android:id="@+id/btnRotate" android:layout_width="38dp" android:layout_height="32dp" android:layout_marginStart="8dp" android:text="⛶" android:textSize="12sp" android:textColor="#FFF" android:backgroundTint="#262626" android:padding="0dp" />
-                    <Button android:id="@+id/btnMenu" android:layout_width="38dp" android:layout_height="32dp" android:layout_marginStart="8dp" android:text="⋮" android:textSize="18sp" android:textColor="#00E676" android:backgroundTint="#262626" android:padding="0dp" />
+                    android:gravity="center"
+                    android:layout_marginTop="4dp">
+
+                    <Button
+                        android:id="@+id/btnSpeed"
+                        android:layout_width="70dp"
+                        android:layout_height="32dp"
+                        android:text="SPEED"
+                        android:textSize="9sp"
+                        android:textColor="#FFFFFF"
+                        android:backgroundTint="#262626"
+                        android:padding="0dp" />
+
+                    <Button
+                        android:id="@+id/btnZoom"
+                        android:layout_width="70dp"
+                        android:layout_height="32dp"
+                        android:layout_marginStart="6dp"
+                        android:text="FIT"
+                        android:textSize="9sp"
+                        android:textColor="#FFFFFF"
+                        android:backgroundTint="#262626"
+                        android:padding="0dp" />
+
+                    <Button
+                        android:id="@+id/btnRotate"
+                        android:layout_width="55dp"
+                        android:layout_height="32dp"
+                        android:layout_marginStart="6dp"
+                        android:text="ROTATE"
+                        android:textSize="8sp"
+                        android:textColor="#FFFFFF"
+                        android:backgroundTint="#262626"
+                        android:padding="0dp" />
+
+                    <Button
+                        android:id="@+id/btnMenu"
+                        android:layout_width="45dp"
+                        android:layout_height="32dp"
+                        android:layout_marginStart="6dp"
+                        android:text="⋮"
+                        android:textSize="18sp"
+                        android:textColor="#00E676"
+                        android:backgroundTint="#262626"
+                        android:padding="0dp" />
+
                 </LinearLayout>
+
             </LinearLayout>
 
             <TextView
@@ -429,11 +559,17 @@ jobs:
                 android:textSize="16sp"
                 android:textStyle="bold"
                 android:visibility="gone" />
+
         </RelativeLayout>
+
         EOF
-        cat << 'EOF' > app/src/main/java/com/example/universalplayer/VideoItem.kt
+
+        cat <<'EOF' > app/src/main/java/com/example/universalplayer/VideoItem.kt
+
         package com.example.universalplayer
+
         import java.io.Serializable
+
         data class VideoItem(
             val id: Long,
             val title: String,
@@ -444,10 +580,13 @@ jobs:
             val isFolder: Boolean = false,
             val count: Int = 0
         ) : Serializable
+
         EOF
 
-        cat << 'EOF' > app/src/main/java/com/example/universalplayer/VideoAdapter.kt
+        cat <<'EOF' > app/src/main/java/com/example/universalplayer/VideoAdapter.kt
+
         package com.example.universalplayer
+
         import android.view.LayoutInflater
         import android.view.View
         import android.view.ViewGroup
@@ -461,41 +600,107 @@ jobs:
             private val onClick: (Int) -> Unit,
             private val onMenu: (View, Int) -> Unit
         ) : RecyclerView.Adapter<VideoAdapter.VH>() {
+
             class VH(v: View) : RecyclerView.ViewHolder(v) {
-                val img: ImageView = v.findViewById(R.id.imgThumb)
-                val t: TextView = v.findViewById(R.id.txtTitle)
-                val d: TextView = v.findViewById(R.id.txtDuration)
-                val m: Button = v.findViewById(R.id.btnItemMenu)
+
+                val img: ImageView =
+                    v.findViewById(R.id.imgThumb)
+
+                val t: TextView =
+                    v.findViewById(R.id.txtTitle)
+
+                val d: TextView =
+                    v.findViewById(R.id.txtDuration)
+
+                val m: Button =
+                    v.findViewById(R.id.btnItemMenu)
             }
-            override fun onCreateViewHolder(p: ViewGroup, vt: Int) = VH(LayoutInflater.from(p.context).inflate(R.layout.item_video, p, false))
-            override fun onBindViewHolder(h: VH, pos: Int) {
-                val item = list[pos]
-                h.t.text = item.title
-                h.d.text = if (item.isFolder) "${item.count} Videos" else item.duration
-                h.img.setImageResource(if (item.isFolder) android.R.drawable.ic_dialog_dialer else android.R.drawable.ic_media_play)
-                h.m.visibility = if (item.isFolder) View.GONE else View.VISIBLE
-                h.itemView.setOnClickListener { onClick(pos) }
-                h.m.setOnClickListener { onMenu(it, pos) }
+
+            override fun onCreateViewHolder(
+                parent: ViewGroup,
+                viewType: Int
+            ) =
+                VH(
+                    LayoutInflater
+                        .from(parent.context)
+                        .inflate(
+                            R.layout.item_video,
+                            parent,
+                            false
+                        )
+                )
+
+            override fun onBindViewHolder(
+                holder: VH,
+                position: Int
+            ) {
+
+                val item = list[position]
+
+                holder.t.text = item.title
+
+                holder.d.text =
+                    if (item.isFolder)
+                        "${item.count} Videos"
+                    else
+                        item.duration
+
+                holder.img.setImageResource(
+                    if (item.isFolder)
+                        android.R.drawable.ic_menu_agenda
+                    else
+                        android.R.drawable.ic_media_play
+                )
+
+                holder.m.visibility =
+                    if (item.isFolder)
+                        View.GONE
+                    else
+                        View.VISIBLE
+
+                holder.itemView.setOnClickListener {
+                    onClick(position)
+                }
+
+                holder.m.setOnClickListener {
+                    onMenu(it, position)
+                }
             }
-            override fun getItemCount() = list.size
-            fun update(newList: List<VideoItem>) { list = newList; notifyDataSetChanged() }
+
+            override fun getItemCount() =
+                list.size
+
+            fun update(newList: List<VideoItem>) {
+                list = newList
+                notifyDataSetChanged()
+            }
         }
+
         EOF
 
-        cat << 'EOF' > app/src/main/java/com/example/universalplayer/MainActivity.kt
+        c‍at <<'EOF' > app/src/main/java/com/example/universalplayer/MainActivity.kt
+
         package com.example.universalplayer
+
         import android.Manifest
-        import android.content.*
+        import android.content.ContentUris
+        import android.content.ContentValues
+        import android.content.Context
+        import android.content.Intent
+        import android.content.SharedPreferences
         import android.content.pm.PackageManager
         import android.media.MediaMetadataRetriever
         import android.net.Uri
-        import android.os.*
+        import android.os.Build
+        import android.os.Bundle
         import android.provider.MediaStore
-        import android.provider.Settings
         import android.text.Editable
         import android.text.TextWatcher
         import android.view.View
-        import android.widget.*
+        import android.widget.Button
+        import android.widget.EditText
+        import android.widget.TextView
+        import android.widget.Toast
         import androidx.activity.result.contract.ActivityResultContracts
         import androidx.appcompat.app.AlertDialog
         import androidx.appcompat.app.AppCompatActivity
@@ -507,744 +712,2860 @@ jobs:
         import kotlin.concurrent.thread
 
         class MainActivity : AppCompatActivity() {
+
             private lateinit var rv: RecyclerView
             private lateinit var adapter: VideoAdapter
-            private val allVideos = ArrayList<VideoItem>()
-            private val currentDisplayList = ArrayList<VideoItem>()
+
+            private val allVideos =
+                ArrayList<VideoItem>()
+
+            private val currentDisplayList =
+                ArrayList<VideoItem>()
+
             private var isFolderMode = false
             private var isBinMode = false
+            private var searchQuery = ""
+
             private lateinit var prefs: SharedPreferences
 
-            private val pickVideo = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { res ->
-                if (res.resultCode == RESULT_OK) res.data?.data?.let {
-                    val single = arrayListOf(VideoItem(0, "Selected Video", "00:00", it.toString(), ""))
-                    startActivity(Intent(this, PlayerActivity::class.java).apply {
-                        putExtra("VIDEO_LIST", single)
-                        putExtra("VIDEO_INDEX", 0)
-                    })
+            private val pickVideo =
+                registerForActivityResult(
+                    ActivityResultContracts.StartActivityForResult()
+                ) { result ->
+
+                    if (result.resultCode == RESULT_OK) {
+
+                        result.data?.data?.let { uri ->
+
+                            val single =
+                                arrayListOf(
+                                    VideoItem(
+                                        0,
+                                        "Selected Video",
+                                        "00:00",
+                                        uri.toString()
+                                    )
+                                )
+
+                            startActivity(
+                                Intent(
+                                    this,
+                                    PlayerActivity::class.java
+                                ).apply {
+
+                                    putExtra(
+                                        "VIDEO_LIST",
+                                        single
+                                    )
+
+                                    putExtra(
+                                        "VIDEO_INDEX",
+                                        0
+                                    )
+                                }
+                            )
+                        }
+                    }
                 }
-            }
-            private val reqPerms = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { map ->
-                if (map.values.any { it }) loadVideos()
-            }
 
-            override fun onCreate(savedInstanceState: Bundle?) {
-                super.onCreate(savedInstanceState)
-                setContentView(R.layout.activity_main)
-                prefs = getSharedPreferences("RecycleBinPrefs", Context.MODE_PRIVATE)
+            private val requestPermission =
+                registerForActivityResult(
+                    ActivityResultContracts.RequestPermission()
+                ) { granted ->
 
-                rv = findViewById(R.id.recyclerViewVideos)
-                rv.layoutManager = LinearLayoutManager(this)
-                adapter = VideoAdapter(currentDisplayList, { idx -> onItemClicked(idx) }, { v, idx -> showItemMenu(v, idx) })
+                    if (granted)
+
+                        loadVideos()
+
+                    else
+
+                        Toast.makeText(
+                            this,
+                            "Video permission is required.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                }
+
+            override fun onCreate(
+                savedInstanceState: Bundle?
+            ) {
+
+                super.onCreate(
+                    savedInstanceState
+                )
+
+                setContentView(
+                    R.layout.activity_main
+                )
+
+                prefs =
+                    getSharedPreferences(
+                        "VideoManagerPrefs",
+                        Context.MODE_PRIVATE
+                    )
+
+                rv =
+                    findViewById(
+                        R.id.recyclerViewVideos
+                    )
+
+                rv.layoutManager =
+                    LinearLayoutManager(this)
+
+                adapter =
+                    VideoAdapter(
+                        currentDisplayList,
+                        { idx ->
+                            onItemClicked(idx)
+                        },
+                        { view, idx ->
+                            showItemMenu(view, idx)
+                        }
+                    )
+
                 rv.adapter = adapter
 
-                findViewById<Button>(R.id.btnOpenFile).setOnClickListener {
-                    val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply { addCategory(Intent.CATEGORY_OPENABLE); type = "*/*" }
+                findViewById<Button>(
+                    R.id.btnOpenFile
+                ).setOnClickListener {
+
+                    val intent =
+                        Intent(
+                            Intent.ACTION_OPEN_DOCUMENT
+                        ).apply {
+
+                            addCategory(
+                                Intent.CATEGORY_OPENABLE
+                            )
+
+                            type = "video/*"
+                        }
+
                     pickVideo.launch(intent)
                 }
 
-                findViewById<Button>(R.id.tabVideos).setOnClickListener {
-                    isFolderMode = false; isBinMode = false
+                findViewById<Button>(
+                    R.id.tabVideos
+                ).setOnClickListener {
+
+                    isFolderMode = false
+                    isBinMode = false
+
                     updateView()
                 }
-                findViewById<Button>(R.id.tabFolders).setOnClickListener {
-                    isFolderMode = true; isBinMode = false
+
+                findViewById<Button>(
+                    R.id.tabFolders
+                ).setOnClickListener {
+
+                    isFolderMode = true
+                    isBinMode = false
+
                     updateView()
                 }
-                findViewById<Button>(R.id.btnRecycleBin).setOnClickListener {
+
+                findViewById<Button>(
+                    R.id.btnRecycleBin
+                ).setOnClickListener {
+
                     isBinMode = true
+                    isFolderMode = false
+
                     updateView()
                 }
 
-                findViewById<EditText>(R.id.etSearchVideos).addTextChangedListener(object : TextWatcher {
-                    override fun beforeTextChanged(s: CharSequence?, b: Int, c: Int, a: Int) {}
-                    override fun onTextChanged(s: CharSequence?, b: Int, c: Int, a: Int) {
-                        val q = s.toString().trim()
-                        val filtered = currentDisplayList.filter { it.title.contains(q, true) }
-                        adapter.update(if (q.isEmpty()) currentDisplayList else filtered)
-                    }
-                    override fun afterTextChanged(e: Editable?) {}
-                })
-                checkPerms()
-            }
+                findViewById<EditText>(
+                    R.id.etSearchVideos
+                ).addTextChangedListener(
 
-            private fun checkPerms() {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                    if (!Environment.isExternalStorageManager()) {
-                        try {
-                            val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION).apply {
-                                data = Uri.parse("package:$packageName")
-                            }
-                            startActivity(intent)
-                        } catch (_: Exception) {
-                            val intent = Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
-                            startActivity(intent)
+                    object : TextWatcher {
+
+                        override fun beforeTextChanged(
+                            s: CharSequence?,
+                            start: Int,
+                            count: Int,
+                            after: Int
+                        ) {}
+
+                        override fun onTextChanged(
+                            s: CharSequence?,
+                            start: Int,
+                            before: Int,
+                            count: Int
+                        ) {
+
+                            searchQuery =
+                                s?.toString()
+                                    ?.trim()
+                                    .orEmpty()
+
+                            updateView()
                         }
+
+                        override fun afterTextChanged(
+                            s: Editable?
+                        ) {}
                     }
-                }
-                val perms = if (Build.VERSION.SDK_INT >= 33) arrayOf(Manifest.permission.READ_MEDIA_VIDEO, Manifest.permission.READ_MEDIA_AUDIO, Manifest.permission.READ_MEDIA_IMAGES)
-                else arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                if (perms.all { ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED }) loadVideos()
-                else reqPerms.launch(perms)
+                )
+
+                checkPermission()
             }
 
             override fun onResume() {
+
                 super.onResume()
-                loadVideos()
+
+                if (::prefs.isInitialized)
+                    loadVideos()
+            }
+
+            private fun checkPermission() {
+
+                val permission =
+                    if (Build.VERSION.SDK_INT >= 33)
+
+                        Manifest.permission
+                            .READ_MEDIA_VIDEO
+
+                    else
+
+                        Manifest.permission
+                            .READ_EXTERNAL_STORAGE
+
+                if (
+                    ContextCompat.checkSelfPermission(
+                        this,
+                        permission
+                    ) ==
+                    PackageManager.PERMISSION_GRANTED
+                ) {
+
+                    loadVideos()
+
+                } else {
+
+                    requestPermission.launch(
+                        permission
+                    )
+                }
             }
 
             private fun loadVideos() {
-                allVideos.clear()
-                val binSet = prefs.getStringSet("bin_items", emptySet()) ?: emptySet()
-                val proj = arrayOf(
-                    MediaStore.Video.Media._ID,
-                    MediaStore.Video.Media.DISPLAY_NAME,
-                    MediaStore.Video.Media.DURATION,
-                    MediaStore.Video.Media.DATA,
-                    MediaStore.Video.Media.BUCKET_DISPLAY_NAME
-                )
-
-                contentResolver.query(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, proj, null, null, "${MediaStore.Video.Media.DATE_ADDED} DESC")?.use { c ->
-                    val idCol = c.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
-                    val nameCol = c.getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME)
-                    val durCol = c.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)
-                    val dataCol = c.getColumnIndex(MediaStore.Video.Media.DATA)
-                    val bucketCol = c.getColumnIndex(MediaStore.Video.Media.BUCKET_DISPLAY_NAME)
-
-                    while (c.moveToNext()) {
-                        val id = c.getLong(idCol)
-                        var ms = c.getLong(durCol)
-                        val path = if (dataCol != -1) c.getString(dataCol) ?: "" else ""
-                        val name = c.getString(nameCol) ?: "Video"
-                        val folder = if (bucketCol != -1) c.getString(bucketCol) ?: "Internal" else "Internal"
-                        val u = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id).toString()
-
-                        var dur = if (ms > 0) formatDuration(ms) else "00:00"
-                        val item = VideoItem(id, name, dur, u, path, folder)
-                        allVideos.add(item)
-                    }
-                }
-                updateView()
 
                 thread {
-                    var updated = false
-                    for (item in allVideos) {
-                        if (item.duration == "00:00") {
-                            try {
-                                val retriever = MediaMetadataRetriever()
-                                if (item.filePath.isNotEmpty() && File(item.filePath).exists()) {
-                                    retriever.setDataSource(item.filePath)
-                                } else {
-                                    retriever.setDataSource(this@MainActivity, Uri.parse(item.uriString))
-                                }
-                                val time = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull() ?: 0L
-                                retriever.release()
-                                if (time > 0) {
-                                    item.duration = formatDuration(time)
-                                    updated = true
-                                }
-                            } catch (_: Exception) {}
+
+                    val loaded =
+                        ArrayList<VideoItem>()
+
+                    val binSet =
+                        prefs.getStringSet(
+                            "bin_items",
+                            emptySet()
+                        ) ?: emptySet()
+
+                    val projection =
+                        arrayOf(
+
+                            MediaStore.Video.Media._ID,
+
+                            MediaStore.Video.Media
+                                .DISPLAY_NAME,
+
+                            MediaStore.Video.Media
+                                .DURATION,
+
+                            MediaStore.Video.Media
+                                .DATA,
+
+                            MediaStore.Video.Media
+                                .BUCKET_DISPLAY_NAME
+                        )
+
+                    contentResolver.query(
+
+                        MediaStore.Video.Media
+                            .EXTERNAL_CONTENT_URI,
+
+                        projection,
+
+                        null,
+                        null,
+
+                        "${MediaStore.Video.Media.DATE_ADDED} DESC"
+
+                    )?.use { c ->
+
+                        val idCol =
+                            c.getColumnIndexOrThrow(
+                                MediaStore.Video.Media._ID
+                            )
+
+                        val nameCol =
+                            c.getColumnIndexOrThrow(
+                                MediaStore.Video.Media
+                                    .DISPLAY_NAME
+                            )
+
+                        val durCol =
+                            c.getColumnIndexOrThrow(
+                                MediaStore.Video.Media
+                                    .DURATION
+                            )
+
+                        val dataCol =
+                            c.getColumnIndex(
+                                MediaStore.Video.Media.DATA
+                            )
+
+                        val bucketCol =
+                            c.getColumnIndex(
+                                MediaStore.Video.Media
+                                    .BUCKET_DISPLAY_NAME
+                            )
+
+                        while (c.moveToNext()) {
+
+                            val id =
+                                c.getLong(idCol)
+
+                            if (
+                                binSet.contains(
+                                    id.toString()
+                                )
+                            )
+                                continue
+
+                            val name =
+                                c.getString(
+                                    nameCol
+                                ) ?: "Video"
+
+                            val durationMs =
+                                c.getLong(durCol)
+
+                            val path =
+                                if (dataCol >= 0)
+                                    c.getString(dataCol)
+                                        ?: ""
+                                else
+                                    ""
+
+                            val folder =
+                                if (bucketCol >= 0)
+                                    c.getString(
+                                        bucketCol
+                                    ) ?: "Internal"
+                                else
+                                    "Internal"
+
+                            val uri =
+                                ContentUris.withAppendedId(
+                                    MediaStore.Video.Media
+                                        .EXTERNAL_CONTENT_URI,
+                                    id
+                                )
+
+                            loaded.add(
+
+                                VideoItem(
+
+                                    id,
+
+                                    name,
+
+                                    if (durationMs > 0)
+                                        formatDuration(
+                                            durationMs
+                                        )
+                                    else
+                                        "00:00",
+
+                                    uri.toString(),
+
+                                    path,
+
+                                    folder
+                                )
+                            )
                         }
                     }
-                    if (updated) {
-                        runOnUiThread { adapter.notifyDataSetChanged() }
+
+                    runOnUiThread {
+
+                        allVideos.clear()
+
+                        allVideos.addAll(
+                            loaded
+                        )
+
+                        updateView()
+                    }
+
+                    for (item in loaded) {
+
+                        if (
+                            item.duration != "00:00"
+                        )
+                            continue
+
+                        try {
+
+                            val retriever =
+                                MediaMetadataRetriever()
+
+                            if (
+                                item.filePath.isNotEmpty()
+                                &&
+                                File(
+                                    item.filePath
+                                ).exists()
+                            ) {
+
+                                retriever.setDataSource(
+                                    item.filePath
+                                )
+
+                            } else {
+
+                                retriever.setDataSource(
+                                    this@MainActivity,
+                                    Uri.parse(
+                                        item.uriString
+                                    )
+                                )
+                            }
+
+                            val ms =
+                                retriever.extractMetadata(
+                                    MediaMetadataRetriever
+                                        .METADATA_KEY_DURATION
+                                )
+                                ?.toLongOrNull()
+                                ?: 0L
+
+                            retriever.release()
+
+                            if (ms > 0) {
+
+                                item.duration =
+                                    formatDuration(ms)
+
+                                runOnUiThread {
+
+                                    adapter
+                                        .notifyDataSetChanged()
+                                }
+                            }
+
+                        } catch (_: Exception) {}
                     }
                 }
             }
 
-            private fun formatDuration(ms: Long): String {
-                val hrs = TimeUnit.MILLISECONDS.toHours(ms)
-                val mins = TimeUnit.MILLISECONDS.toMinutes(ms) % 60
-                val secs = TimeUnit.MILLISECONDS.toSeconds(ms) % 60
-                return if (hrs > 0) String.format("%02d:%02d:%02d", hrs, mins, secs)
-                else String.format("%02d:%02d", mins, secs)
+            private fun formatDuration(
+                ms: Long
+            ): String {
+
+                val hrs =
+                    TimeUnit.MILLISECONDS
+                        .toHours(ms)
+
+                val mins =
+                    TimeUnit.MILLISECONDS
+                        .toMinutes(ms) % 60
+
+                val secs =
+                    TimeUnit.MILLISECONDS
+                        .toSeconds(ms) % 60
+
+                return if (hrs > 0)
+
+                    String.format(
+                        "%02d:%02d:%02d",
+                        hrs,
+                        mins,
+                        secs
+                    )
+
+                else
+
+                    String.format(
+                        "%02d:%02d",
+                        mins,
+                        secs
+                    )
             }
+
             private fun updateView() {
+
                 currentDisplayList.clear()
-                val binSet = prefs.getStringSet("bin_items", emptySet()) ?: emptySet()
-                val titleView = findViewById<TextView>(R.id.txtHeaderTitle)
+
+                val binSet =
+                    prefs.getStringSet(
+                        "bin_items",
+                        emptySet()
+                    ) ?: emptySet()
+
+                val source =
+
+                    if (isBinMode)
+
+                        allVideos.filter {
+                            binSet.contains(
+                                it.id.toString()
+                            )
+                        }
+
+                    else
+
+                        allVideos.filter {
+                            !binSet.contains(
+                                it.id.toString()
+                            )
+                        }
 
                 if (isBinMode) {
-                    titleView.text = "Recycle Bin"
-                    currentDisplayList.addAll(allVideos.filter { binSet.contains(it.id.toString()) })
+
+                    findViewById<TextView>(
+                        R.id.txtHeaderTitle
+                    ).text = "Recycle Bin"
+
+                    currentDisplayList
+                        .addAll(source)
+
                 } else if (isFolderMode) {
-                    titleView.text = "All Folders"
-                    val valid = allVideos.filter { !binSet.contains(it.id.toString()) }
-                    val map = valid.groupBy { it.folder }
-                    for ((folder, list) in map) {
-                        currentDisplayList.add(VideoItem(0, folder, "", "", "", folder, true, list.size))
-                    }
+
+                    findViewById<TextView>(
+                        R.id.txtHeaderTitle
+                    ).text = "All Folders"
+
+                    source
+                        .groupBy { it.folder }
+                        .forEach { (folder, list) ->
+
+                            currentDisplayList.add(
+
+                                VideoItem(
+                                    0,
+                                    folder,
+                                    "",
+                                    "",
+                                    "",
+                                    folder,
+                                    true,
+                                    list.size
+                                )
+                            )
+                        }
+
                 } else {
-                    titleView.text = "All Videos"
-                    currentDisplayList.addAll(allVideos.filter { !binSet.contains(it.id.toString()) })
+
+                    findViewById<TextView>(
+                        R.id.txtHeaderTitle
+                    ).text = "All Videos"
+
+                    currentDisplayList
+                        .addAll(source)
                 }
-                adapter.update(currentDisplayList)
+
+                val filtered =
+
+                    if (searchQuery.isBlank())
+
+                        currentDisplayList
+
+                    else
+
+                        currentDisplayList.filter {
+                            it.title.contains(
+                                searchQuery,
+                                ignoreCase = true
+                            )
+                        }
+
+                adapter.update(
+                    filtered
+                )
             }
 
-            private fun onItemClicked(idx: Int) {
-                if (idx !in currentDisplayList.indices) return
-                val item = currentDisplayList[idx]
+            private fun onItemClicked(
+                idx: Int
+            ) {
+
+                if (
+                    idx !in currentDisplayList.indices
+                )
+                    return
+
+                val item =
+                    currentDisplayList[idx]
+
+                val binSet =
+                    prefs.getStringSet(
+                        "bin_items",
+                        emptySet()
+                    ) ?: emptySet()
+
                 if (item.isFolder) {
-                    val binSet = prefs.getStringSet("bin_items", emptySet()) ?: emptySet()
-                    val folderVideos = ArrayList(allVideos.filter { it.folder == item.title && !binSet.contains(it.id.toString()) })
-                    startActivity(Intent(this, PlayerActivity::class.java).apply {
-                        putExtra("VIDEO_LIST", folderVideos)
-                        putExtra("VIDEO_INDEX", 0)
-                    })
-                } else {
-                    val playList = ArrayList(currentDisplayList.filter { !it.isFolder })
-                    val playIndex = playList.indexOf(item).coerceAtLeast(0)
-                    startActivity(Intent(this, PlayerActivity::class.java).apply {
-                        putExtra("VIDEO_LIST", playList)
-                        putExtra("VIDEO_INDEX", playIndex)
-                    })
+
+                    val folderVideos =
+                        ArrayList(
+
+                            allVideos.filter {
+
+                                it.folder ==
+                                    item.title
+
+                                &&
+                                !binSet.contains(
+                                    it.id.toString()
+                                )
+                            }
+                        )
+
+                    if (
+                        folderVideos.isNotEmpty()
+                    ) {
+
+                        startActivity(
+
+                            Intent(
+                                this,
+                                PlayerActivity::class.java
+                            ).apply {
+
+                                putExtra(
+                                    "VIDEO_LIST",
+                                    folderVideos
+                                )
+
+                                putExtra(
+                                    "VIDEO_INDEX",
+                                    0
+                                )
+                            }
+                        )
+                    }
+
+                    return
                 }
+
+                val playList =
+                    ArrayList(
+
+                        currentDisplayList.filter {
+                            !it.isFolder
+                        }
+                    )
+
+                val playIndex =
+                    playList
+                        .indexOf(item)
+                        .coerceAtLeast(0)
+
+                startActivity(
+
+                    Intent(
+                        this,
+                        PlayerActivity::class.java
+                    ).apply {
+
+                        putExtra(
+                            "VIDEO_LIST",
+                            playList
+                        )
+
+                        putExtra(
+                            "VIDEO_INDEX",
+                            playIndex
+                        )
+                    }
+                )
             }
 
-            private fun showItemMenu(v: View, idx: Int) {
-                if (idx !in currentDisplayList.indices) return
-                val item = currentDisplayList[idx]
-                val p = PopupMenu(this, v)
+            private fun showItemMenu(
+                anchor: View,
+                idx: Int
+            ) {
+
+                if (
+                    idx !in currentDisplayList.indices
+                )
+                    return
+
+                val item =
+                    currentDisplayList[idx]
+
+                if (item.isFolder)
+                    return
+
+                val popup =
+                    android.widget.PopupMenu(
+                        this,
+                        anchor
+                    )
+
                 if (isBinMode) {
-                    p.menu.add("Restore")
-                    p.menu.add("Delete Permanently")
+
+                    popup.menu.add(
+                        "Restore"
+                    )
+
+                    popup.menu.add(
+                        "Delete Permanently"
+                    )
+
                 } else {
-                    p.menu.add("File Information")
-                    p.menu.add("Rename")
-                    p.menu.add("Move to Recycle Bin")
-                    p.menu.add("Delete Permanently")
+
+                    popup.menu.add(
+                        "File Information"
+                    )
+
+                    popup.menu.add(
+                        "Rename"
+                    )
+
+                    popup.menu.add(
+                        "Move to Recycle Bin"
+                    )
                 }
-                p.setOnMenuItemClickListener { m ->
-                    when (m.title) {
-                        "File Information" -> showFileInfoDialog(item)
+
+                popup.setOnMenuItemClickListener {
+
+                    when (
+                        it.title.toString()
+                    ) {
+
+                        "File Information" ->
+                            showFileInfoDialog(item)
+
                         "Restore" -> {
-                            val binSet = HashSet(prefs.getStringSet("bin_items", emptySet()) ?: emptySet())
-                            binSet.remove(item.id.toString())
-                            prefs.edit().putStringSet("bin_items", binSet).apply()
+
+                            val set =
+                                HashSet(
+
+                                    prefs.getStringSet(
+                                        "bin_items",
+                                        emptySet()
+                                    ) ?: emptySet()
+                                )
+
+                            set.remove(
+                                item.id.toString()
+                            )
+
+                            prefs.edit()
+                                .putStringSet(
+                                    "bin_items",
+                                    set
+                                )
+                                .apply()
+
                             updateView()
                         }
+
                         "Move to Recycle Bin" -> {
-                            val binSet = HashSet(prefs.getStringSet("bin_items", emptySet()) ?: emptySet())
-                            binSet.add(item.id.toString())
-                            prefs.edit().putStringSet("bin_items", binSet).apply()
+
+                            val set =
+                                HashSet(
+
+                                    prefs.getStringSet(
+                                        "bin_items",
+                                        emptySet()
+                                    ) ?: emptySet()
+                                )
+
+                            set.add(
+                                item.id.toString()
+                            )
+
+                            prefs.edit()
+                                .putStringSet(
+                                    "bin_items",
+                                    set
+                                )
+                                .apply()
+
                             updateView()
                         }
-                        "Delete Permanently" -> {
-                            AlertDialog.Builder(this).setTitle("Delete Permanently?").setMessage("Are you sure?").setPositiveButton("Delete") { _, _ ->
-                                try {
-                                    contentResolver.delete(Uri.parse(item.uriString), null, null)
-                                    if (item.filePath.isNotEmpty()) File(item.filePath).delete()
-                                    val binSet = HashSet(prefs.getStringSet("bin_items", emptySet()) ?: emptySet())
-                                    binSet.remove(item.id.toString())
-                                    prefs.edit().putStringSet("bin_items", binSet).apply()
-                                    loadVideos()
-                                } catch (e: Exception) { Toast.makeText(this, "Cannot delete file directly: ${e.message}", Toast.LENGTH_SHORT).show() }
-                            }.setNegativeButton("Cancel", null).show()
-                        }
-                        "Rename" -> {
-                            val et = EditText(this).apply { setText(item.title) }
-                            AlertDialog.Builder(this).setTitle("Rename Video").setView(et).setPositiveButton("Save") { _, _ ->
-                                try {
-                                    val vals = ContentValues().apply { put(MediaStore.Video.Media.DISPLAY_NAME, et.text.toString()) }
-                                    contentResolver.update(Uri.parse(item.uriString), vals, null, null)
-                                    loadVideos()
-                                } catch (e: Exception) { Toast.makeText(this, "Rename failed: ${e.message}", Toast.LENGTH_SHORT).show() }
-                            }.setNegativeButton("Cancel", null).show()
-                        }
+
+                        "Delete Permanently" ->
+                            permanentlyDelete(item)
+
+                        "Rename" ->
+                            renameVideo(item)
                     }
+
                     true
                 }
-                p.show()
+
+                popup.show()
             }
 
-            private fun showFileInfoDialog(item: VideoItem) {
-                val f = if (item.filePath.isNotEmpty()) File(item.filePath) else null
-                val sizeStr = if (f != null && f.exists()) String.format("%.2f MB", f.length().toDouble() / (1024 * 1024)) else "Unknown"
-                var resStr = "Unknown"; var vCodec = "Default"
+            private fun renameVideo(
+                item: VideoItem
+            ) {
+
+                val input =
+                    EditText(this).apply {
+
+                        setText(
+                            item.title
+                        )
+
+                        selectAll()
+                    }
+
+                AlertDialog.Builder(this)
+
+                    .setTitle(
+                        "Rename Video"
+                    )
+
+                    .setView(
+                        input
+                    )
+
+                    .setPositiveButton(
+                        "Save"
+                    ) { _, _ ->
+
+                        try {
+
+                            val values =
+                                ContentValues().apply {
+
+                                    put(
+                                        MediaStore
+                                            .Video
+                                            .Media
+                                            .DISPLAY_NAME,
+
+                                        input.text.toString()
+                                    )
+                                }
+
+                            contentResolver.update(
+
+                                Uri.parse(
+                                    item.uriString
+                                ),
+
+                                values,
+
+                                null,
+                                null
+                            )
+
+                            loadVideos()
+
+                        } catch (e: Exception) {
+
+                            Toast.makeText(
+                                this,
+                                "Rename failed: ${e.message}",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                    }
+
+                    .setNegativeButton(
+                        "Cancel",
+                        null
+                    )
+
+                    .show()
+            }
+
+            private fun permanentlyDelete(
+                item: VideoItem
+            ) {
+
+                AlertDialog.Builder(this)
+
+                    .setTitle(
+                        "Delete Permanently?"
+                    )
+
+                    .setMessage(
+                        "This will remove the video from device storage."
+                    )
+
+                    .setPositiveButton(
+                        "Delete"
+                    ) { _, _ ->
+
+                        try {
+
+                            contentResolver.delete(
+
+                                Uri.parse(
+                                    item.uriString
+                                ),
+
+                                null,
+                                null
+                            )
+
+                            if (
+                                item.filePath.isNotEmpty()
+                            ) {
+
+                                runCatching {
+
+                                    File(
+                                        item.filePath
+                                    ).delete()
+                                }
+                            }
+
+                            val set =
+                                HashSet(
+
+                                    prefs.getStringSet(
+                                        "bin_items",
+                                        emptySet()
+                                    ) ?: emptySet()
+                                )
+
+                            set.remove(
+                                item.id.toString()
+                            )
+
+                            prefs.edit()
+                                .putStringSet(
+                                    "bin_items",
+                                    set
+                                )
+                                .apply()
+
+                            loadVideos()
+
+                        } catch (e: Exception) {
+
+                            Toast.makeText(
+                                this,
+                                "Delete failed: ${e.message}",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                    }
+
+                    .setNegativeButton(
+                        "Cancel",
+                        null
+                    )
+
+                    .show()
+            }
+
+            private fun showFileInfoDialog(
+                item: VideoItem
+            ) {
+
+                val file =
+                    if (
+                        item.filePath.isNotEmpty()
+                    )
+                        File(item.filePath)
+                    else
+                        null
+
+                val size =
+                    if (
+                        file?.exists() == true
+                    )
+                        String.format(
+                            "%.2f MB",
+                            file.length()
+                                .toDouble() /
+                                (1024 * 1024)
+                        )
+                    else
+                        "Unknown"
+
+                var resolution =
+                    "Unknown"
+
+                var mime =
+                    "Unknown"
 
                 try {
-                    val retriever = MediaMetadataRetriever()
-                    if (item.filePath.isNotEmpty() && File(item.filePath).exists()) retriever.setDataSource(item.filePath)
-                    else retriever.setDataSource(this, Uri.parse(item.uriString))
-                    val w = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH) ?: ""
-                    val h = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT) ?: ""
-                    if (w.isNotEmpty() && h.isNotEmpty()) resStr = "${w}x${h}"
-                    vCodec = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_MIMETYPE) ?: "video/mp4"
+
+                    val retriever =
+                        MediaMetadataRetriever()
+
+                    if (
+                        item.filePath.isNotEmpty()
+                        &&
+                        File(
+                            item.filePath
+                        ).exists()
+                    ) {
+
+                        retriever.setDataSource(
+                            item.filePath
+                        )
+
+                    } else {
+
+                        retriever.setDataSource(
+                            this,
+                            Uri.parse(
+                                item.uriString
+                            )
+                        )
+                    }
+
+                    val w =
+                        retriever.extractMetadata(
+                            MediaMetadataRetriever
+                                .METADATA_KEY_VIDEO_WIDTH
+                        )
+
+                    val h =
+                        retriever.extractMetadata(
+                            MediaMetadataRetriever
+                                .METADATA_KEY_VIDEO_HEIGHT
+                        )
+
+                    if (
+                        !w.isNullOrBlank()
+                        &&
+                        !h.isNullOrBlank()
+                    ) {
+
+                        resolution =
+                            "${w}x${h}"
+                    }
+
+                    mime =
+                        retriever.extractMetadata(
+                            MediaMetadataRetriever
+                                .METADATA_KEY_MIMETYPE
+                        ) ?: "Unknown"
+
                     retriever.release()
+
                 } catch (_: Exception) {}
 
-                val msg = """
+                val message = """
+
                     File Name: ${item.title}
-                    Size: $sizeStr
+
+                    Size: $size
+
                     Duration: ${item.duration}
-                    Resolution: $resStr
-                    Format: $vCodec
+
+                    Resolution: $resolution
+
+                    Format: $mime
+
                     Path: ${item.filePath.ifEmpty { item.uriString }}
+
                     Folder: ${item.folder}
+
                 """.trimIndent()
 
-                AlertDialog.Builder(this).setTitle("Video Information").setMessage(msg).setPositiveButton("OK", null).show()
+                AlertDialog.Builder(this)
+
+                    .setTitle(
+                        "Video Information"
+                    )
+
+                    .setMessage(
+                        message
+                    )
+
+                    .setPositiveButton(
+                        "OK",
+                        null
+                    )
+
+                    .show()
             }
         }
+
         EOF
 
-        cat << 'EOF' > app/src/main/java/com/example/universalplayer/PlayerActivity.kt
+        cat <<'EOF' > app/src/main/java/com/example/universalplayer/PlayerActivity.kt
+
         package com.example.universalplayer
+
         import android.app.PictureInPictureParams
-        import android.content.*
+        import android.content.BroadcastReceiver
+        import android.content.Context
+        import android.content.Intent
+        import android.content.IntentFilter
         import android.content.pm.ActivityInfo
         import android.graphics.Bitmap
-        import android.media.*
+        import android.media.AudioManager
+        import android.media.MediaCodec
+        import android.media.MediaExtractor
+        import android.media.MediaFormat
+        import android.media.MediaMuxer
         import android.net.Uri
-        import android.os.*
+        import android.os.BatteryManager
+        import android.os.Build
+        import android.os.Bundle
+        import android.os.Environment
+        import android.os.Handler
+        import android.os.Looper
         import android.provider.MediaStore
         import android.util.Rational
-        import android.view.*
-        import android.widget.*
+        import android.view.GestureDetector
+        import android.view.MotionEvent
+        import android.view.ScaleGestureDetector
+        import android.view.TextureView
+        import android.view.View
+        import android.view.WindowManager
+        import android.widget.Button
+        import android.widget.SeekBar
+        import android.widget.TextView
+        import android.widget.Toast
         import androidx.appcompat.app.AlertDialog
         import androidx.appcompat.app.AppCompatActivity
-        import androidx.media3.common.*
+        import androidx.media3.common.C
+        import androidx.media3.common.MediaItem
+        import androidx.media3.common.PlaybackException
+        import androidx.media3.common.PlaybackParameters
+        import androidx.media3.common.Player
+        import androidx.media3.common.TrackGroup
+        import androidx.media3.common.TrackSelectionOverride
+        import androidx.media3.common.util.UnstableApi
         import androidx.media3.exoplayer.DefaultRenderersFactory
         import androidx.media3.exoplayer.ExoPlayer
+        import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
         import androidx.media3.extractor.DefaultExtractorsFactory
         import androidx.media3.extractor.mp4.Mp4Extractor
         import androidx.media3.extractor.ts.DefaultTsPayloadReaderFactory
         import androidx.media3.ui.AspectRatioFrameLayout
         import androidx.media3.ui.PlayerView
-        import java.io.*
+        import java.io.File
+        import java.io.FileInputStream
         import java.nio.ByteBuffer
         import java.text.SimpleDateFormat
-        import java.util.*
+        import java.util.ArrayList
+        import java.util.Date
+        import java.util.Locale
+        import java.util.concurrent.TimeUnit
         import kotlin.concurrent.thread
         import kotlin.math.abs
 
-        class PlayerActivity : AppCompatActivity() {
-            private var player: ExoPlayer? = null
-            private lateinit var pv: PlayerView
-            private lateinit var txtInd: TextView
-            private lateinit var txtClock: TextView
-            private lateinit var txtBattery: TextView
-            private lateinit var topBar: View
-            private lateinit var bottomBar: View
-            private lateinit var btnLock: Button
-            private lateinit var rightControls: View
-            private lateinit var btnPlay: Button
-            private lateinit var seekBar: SeekBar
-            private lateinit var txtTime: TextView
-            private lateinit var am: AudioManager
-            private lateinit var gd: GestureDetector
-            private lateinit var scaleDetector: ScaleGestureDetector
+        @OptIn(UnstableApi::class)
 
-            private var videoList = ArrayList<VideoItem>()
+        class PlayerActivity :
+            AppCompatActivity() {
+
+            private var player:
+                ExoPlayer? = null
+
+            private lateinit var pv:
+                PlayerView
+
+            private lateinit var txtInd:
+                TextView
+
+            private lateinit var txtClock:
+                TextView
+
+            private lateinit var txtBattery:
+                TextView
+
+            private lateinit var topBar:
+                View
+
+            private lateinit var bottomBar:
+                View
+
+            private lateinit var btnLock:
+                Button
+
+            private lateinit var rightControls:
+                View
+
+            private lateinit var btnPlay:
+                Button
+
+            private lateinit var seekBar:
+                SeekBar
+
+            private lateinit var txtTime:
+                TextView
+
+            private lateinit var am:
+                AudioManager
+
+            private lateinit var gd:
+                GestureDetector
+
+            private lateinit var scaleDetector:
+                ScaleGestureDetector
+
+            private var videoList =
+                ArrayList<VideoItem>()
+
             private var curIdx = 0
+
             private var maxVol = 15
+
             private var curVolProgress = 0f
+
             private var curBri = 0.5f
+
             private var isLand = false
+
             private var isLock = false
+
             private var ccOn = true
+
             private var zoomMode = 0
-            private var swipeSeekPos = 0L
-            private var isSeekingViaSwipe = false
-            private var customScale = 1.0f
+
+            private var customScale = 1f
+
             private var transX = 0f
+
             private var transY = 0f
-            private val handler = Handler(Looper.getMainLooper())
 
-            private val batteryReceiver = object : BroadcastReceiver() {
-                override fun onReceive(c: Context?, intent: Intent?) {
-                    val level = intent?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
-                    val scale = intent?.getIntExtra(BatteryManager.EXTRA_SCALE, -1) ?: -1
-                    if (level >= 0 && scale > 0) txtBattery.text = "🔋 ${(level * 100) / scale}%"
+            private var swipeSeekPos = 0L
+
+            private var isSeekingViaSwipe = false
+
+            private val handler =
+                Handler(
+                    Looper.getMainLooper()
+                )
+
+            private val batteryReceiver =
+                object : BroadcastReceiver() {
+
+                    override fun onReceive(
+                        context: Context?,
+                        intent: Intent?
+                    ) {
+
+                        val level =
+                            intent?.getIntExtra(
+                                BatteryManager.EXTRA_LEVEL,
+                                -1
+                            ) ?: -1
+
+                        val scale =
+                            intent?.getIntExtra(
+                                BatteryManager.EXTRA_SCALE,
+                                -1
+                            ) ?: -1
+
+                        if (
+                            level >= 0 &&
+                            scale > 0
+                        ) {
+
+                            txtBattery.text =
+                                "Battery ${(level * 100) / scale}%"
+                        }
+                    }
                 }
-            }
 
-            override fun onCreate(savedInstanceState: Bundle?) {
-                super.onCreate(savedInstanceState)
-                window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-                setContentView(R.layout.activity_player)
+            override fun onCreate(
+                savedInstanceState: Bundle?
+            ) {
 
-                pv = findViewById(R.id.playerView)
-                txtInd = findViewById(R.id.txtIndicator)
-                txtClock = findViewById(R.id.txtClock)
-                txtBattery = findViewById(R.id.txtBattery)
-                topBar = findViewById(R.id.topBar)
-                bottomBar = findViewById(R.id.bottomBar)
-                btnLock = findViewById(R.id.btnLock)
-                rightControls = findViewById(R.id.rightControls)
-                btnPlay = findViewById(R.id.btnPlayPause)
-                seekBar = findViewById(R.id.seekBar)
-                txtTime = findViewById(R.id.txtTime)
+                super.onCreate(
+                    savedInstanceState
+                )
 
-                am = getSystemService(Context.AUDIO_SERVICE) as AudioManager
-                maxVol = am.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
-                curVolProgress = am.getStreamVolume(AudioManager.STREAM_MUSIC).toFloat()
-                registerReceiver(batteryReceiver, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+                window.addFlags(
+                    WindowManager
+                        .LayoutParams
+                        .FLAG_KEEP_SCREEN_ON
+                )
 
-                val list = intent.getSerializableExtra("VIDEO_LIST") as? ArrayList<VideoItem>
-                if (list != null) videoList = list
-                curIdx = intent.getIntExtra("VIDEO_INDEX", 0)
+                setContentView(
+                    R.layout.activity_player
+                )
 
-                updateClock()
+                pv =
+                    findViewById(
+                        R.id.playerView
+                    )
+
+                txtInd =
+                    findViewById(
+                        R.id.txtIndicator
+                    )
+
+                txtClock =
+                    findViewById(
+                        R.id.txtClock
+                    )
+
+                txtBattery =
+                    findViewById(
+                        R.id.txtBattery
+                    )
+
+                topBar =
+                    findViewById(
+                        R.id.topBar
+                    )
+
+                bottomBar =
+                    findViewById(
+                        R.id.bottomBar
+                    )
+
+                btnLock =
+                    findViewById(
+                        R.id.btnLock
+                    )
+
+                rightControls =
+                    findViewById(
+                        R.id.rightControls
+                    )
+
+                btnPlay =
+                    findViewById(
+                        R.id.btnPlayPause
+                    )
+
+                seekBar =
+                    findViewById(
+                        R.id.seekBar
+                    )
+
+                txtTime =
+                    findViewById(
+                        R.id.txtTime
+                    )
+
+                am =
+                    getSystemService(
+                        Context.AUDIO_SERVICE
+                    ) as AudioManager
+
+                maxVol =
+                    am.getStreamMaxVolume(
+                        AudioManager.STREAM_MUSIC
+                    )
+
+                curVolProgress =
+                    am.getStreamVolume(
+                        AudioManager.STREAM_MUSIC
+                    ).toFloat()
+
+                curBri =
+                    window.attributes
+                        .screenBrightness
+                        .takeIf {
+                            it in 0.01f..1f
+                        }
+                        ?: 0.5f
+
+                registerReceiver(
+                    batteryReceiver,
+                    IntentFilter(
+                        Intent.ACTION_BATTERY_CHANGED
+                    )
+                )
+
+                @Suppress("DEPRECATION")
+                val list =
+                    intent.getSerializableExtra(
+                        "VIDEO_LIST"
+                    ) as? ArrayList<VideoItem>
+
+                if (list != null)
+                    videoList = list
+
+                curIdx =
+                    intent.getIntExtra(
+                        "VIDEO_INDEX",
+                        0
+                    )
+
                 setupClicks()
                 setupGestures()
-                playVideoAtIndex(curIdx)
+                updateClock()
+
+                playVideoAtIndex(
+                    curIdx
+                )
             }
-            private fun playVideoAtIndex(idx: Int) {
-                if (videoList.isEmpty() || idx !in 0 until videoList.size) return
-                curIdx = idx
-                val item = videoList[curIdx]
-                initPlayer(Uri.parse(item.uriString))
+
+            private fun playVideoAtIndex(
+                index: Int
+            ) {
+
+                if (
+                    videoList.isEmpty() ||
+                    index !in videoList.indices
+                )
+                    return
+
+                curIdx = index
+
+                initPlayer(
+                    Uri.parse(
+                        videoList[curIdx]
+                            .uriString
+                    )
+                )
             }
 
             private fun updateClock() {
-                txtClock.text = SimpleDateFormat("hh:mm a", Locale.getDefault()).format(Date())
-                handler.postDelayed({ updateClock() }, 10000)
+
+                txtClock.text =
+                    SimpleDateFormat(
+                        "hh:mm a",
+                        Locale.getDefault()
+                    ).format(
+                        Date()
+                    )
+
+                handler.postDelayed(
+                    {
+                        updateClock()
+                    },
+                    10000
+                )
             }
 
             private fun setupClicks() {
+
                 btnLock.setOnClickListener {
+
                     isLock = !isLock
-                    btnLock.text = if (isLock) "🔒" else "🔓"
-                    val v = if (isLock) View.GONE else View.VISIBLE
-                    topBar.visibility = v; bottomBar.visibility = v; rightControls.visibility = v
-                    show(if (isLock) "Locked" else "Unlocked")
+
+                    btnLock.text =
+                        if (isLock)
+                            "Unlock"
+                        else
+                            "Lock"
+
+                    val visibility =
+                        if (isLock)
+                            View.GONE
+                        else
+                            View.VISIBLE
+
+                    topBar.visibility =
+                        visibility
+
+                    bottomBar.visibility =
+                        visibility
+
+                    rightControls.visibility =
+                        visibility
+
+                    showIndicator(
+                        if (isLock)
+                            "Locked"
+                        else
+                            "Unlocked"
+                    )
                 }
-                findViewById<Button>(R.id.btnSnapshot).setOnClickListener { takeSnap() }
-                findViewById<Button>(R.id.btnPiP).setOnClickListener { enterPiP() }
+
+                findViewById<Button>(
+                    R.id.btnSnapshot
+                ).setOnClickListener {
+                    takeSnap()
+                }
+
+                findViewById<Button>(
+                    R.id.btnPiP
+                ).setOnClickListener {
+                    enterPiP()
+                }
+
                 btnPlay.setOnClickListener {
+
                     player?.let {
-                        if (it.isPlaying) { it.pause(); btnPlay.text = "▶" }
-                        else { it.play(); btnPlay.text = "⏸" }
-                    }
-                }
-                findViewById<Button>(R.id.btnPrev).setOnClickListener {
-                    if (curIdx > 0) playVideoAtIndex(curIdx - 1) else show("First Video")
-                }
-                findViewById<Button>(R.id.btnNext).setOnClickListener {
-                    if (curIdx < videoList.size - 1) playVideoAtIndex(curIdx + 1) else show("Last Video")
-                }
-                findViewById<Button>(R.id.btnSpeed).setOnClickListener { showSpeedDialog() }
-                findViewById<Button>(R.id.btnZoom).setOnClickListener {
-                    zoomMode = (zoomMode + 1) % 3
-                    val btn = it as Button
-                    customScale = 1.0f; transX = 0f; transY = 0f
-                    applyZoomAndPan()
-                    when (zoomMode) {
-                        0 -> { pv.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT; btn.text = "FIT" }
-                        1 -> { pv.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FILL; btn.text = "STRETCH" }
-                        2 -> { pv.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM; btn.text = "ZOOM" }
-                    }
-                }
-                findViewById<Button>(R.id.btnRotate).setOnClickListener {
-                    isLand = !isLand
-                    requestedOrientation = if (isLand) ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE else ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-                }
-                findViewById<Button>(R.id.btnMenu).setOnClickListener { showMenuOptions(it) }
 
-                seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-                    override fun onProgressChanged(sb: SeekBar?, p: Int, fromUser: Boolean) {
-                        if (fromUser) player?.seekTo(p.toLong())
-                    }
-                    override fun onStartTrackingTouch(sb: SeekBar?) {}
-                    override fun onStopTrackingTouch(sb: SeekBar?) {}
-                })
-            }
+                        if (it.isPlaying) {
 
-            private fun applyZoomAndPan() {
-                val sv = pv.videoSurfaceView ?: return
-                sv.scaleX = customScale
-                sv.scaleY = customScale
-                sv.translationX = transX
-                sv.translationY = transY
-            }
+                            it.pause()
 
-            private fun showSpeedDialog() {
-                val opts = arrayOf("0.5x", "1.0x", "1.5x", "2.0x", "Custom Speed")
-                val vals = floatArrayOf(0.5f, 1.0f, 1.5f, 2.0f)
-                AlertDialog.Builder(this).setTitle("Playback Speed").setItems(opts) { _, idx ->
-                    if (idx < vals.size) {
-                        player?.playbackParameters = PlaybackParameters(vals[idx])
-                        show("Speed: ${opts[idx]}")
-                    } else {
-                        val et = EditText(this).apply { hint = "e.g. 1.25"; setRawInputType(android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL) }
-                        AlertDialog.Builder(this).setTitle("Enter Custom Speed").setView(et).setPositiveButton("Set") { _, _ ->
-                            val sp = et.text.toString().toFloatOrNull() ?: 1.0f
-                            player?.playbackParameters = PlaybackParameters(sp)
-                            show("Speed: ${sp}x")
-                        }.show()
-                    }
-                }.show()
-            }
+                            btnPlay.text =
+                                "Play"
 
-            private fun showMenuOptions(v: View) {
-                val p = PopupMenu(this, v)
-                p.menu.add(0, 1, 0, "🎵 Save MP3")
-                p.menu.add(0, 2, 0, if (ccOn) "CC: Subtitles OFF" else "CC: Subtitles ON")
-                p.menu.add(0, 3, 0, "🎧 Audio Track")
-                p.setOnMenuItemClickListener { m ->
-                    when (m.itemId) {
-                        1 -> {
-                            if (videoList.isNotEmpty()) {
-                                val item = videoList[curIdx]
-                                show("Saving MP3...")
-                                thread { saveAudio(Uri.parse(item.uriString), item.title) }
-                            }
-                        }
-                        2 -> {
-                            ccOn = !ccOn
-                            player?.trackSelectionParameters?.let { params ->
-                                player?.trackSelectionParameters = params.buildUpon().setTrackTypeDisabled(C.TRACK_TYPE_TEXT, !ccOn).build()
-                            }
-                            show(if (ccOn) "CC ON" else "CC OFF")
-                        }
-                        3 -> showAudioTrackSelection()
-                    }
-                    true
-                }
-                p.show()
-            }
+                        } else {
 
-            private fun showAudioTrackSelection() {
-                val tracks = player?.currentTracks ?: return
-                val audioTrackList = ArrayList<String>()
-                val trackGroupList = ArrayList<Pair<TrackGroup, Int>>()
-                for (group in tracks.groups) {
-                    if (group.type == C.TRACK_TYPE_AUDIO) {
-                        for (i in 0 until group.length) {
-                            val format = group.getTrackFormat(i)
-                            val lang = format.language ?: "Track ${audioTrackList.size + 1}"
-                            val label = "${lang} (${format.sampleMimeType ?: "Audio"})"
-                            audioTrackList.add(label)
-                            trackGroupList.add(Pair(group.mediaTrackGroup, i))
-                        }
-                    }
-                }
-                if (audioTrackList.isEmpty()) { show("No Multiple Tracks Found"); return }
-                AlertDialog.Builder(this).setTitle("Select Audio Track").setItems(audioTrackList.toTypedArray()) { _, i ->
-                    val pair = trackGroupList[i]
-                    player?.trackSelectionParameters = player?.trackSelectionParameters?.buildUpon()
-                        ?.setOverrideForType(TrackSelectionOverride(pair.first, pair.second))?.build() ?: return@setItems
-                    show("Selected: ${audioTrackList[i]}")
-                }.show()
-            }
+                            it.play()
 
-            private fun enterPiP() {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    enterPictureInPictureMode(PictureInPictureParams.Builder().setAspectRatio(Rational(16, 9)).build())
-                } else show("PiP not supported")
-            }
+                            btnPlay.text =
+                                "Pause"
 
-            override fun onUserLeaveHint() {
-                super.onUserLeaveHint()
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && player?.isPlaying == true) {
-                    enterPictureInPictureMode(PictureInPictureParams.Builder().setAspectRatio(Rational(16, 9)).build())
-                }
-            }
-
-            override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: android.content.res.Configuration) {
-                super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
-                val v = if (isInPictureInPictureMode) View.GONE else View.VISIBLE
-                topBar.visibility = v; bottomBar.visibility = v; btnLock.visibility = v; rightControls.visibility = v
-            }
-
-            private fun initPlayer(uri: Uri) {
-                player?.release()
-                val rf = DefaultRenderersFactory(this).setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER)
-                val ef = DefaultExtractorsFactory()
-                    .setConstantBitrateSeekingEnabled(true)
-                    .setMp4ExtractorFlags(Mp4Extractor.FLAG_READ_SAMPLE_INDEX_DATA)
-                    .setTsExtractorFlags(DefaultTsPayloadReaderFactory.FLAG_ALLOW_NON_IDR_KEYFRAMES)
-
-                player = ExoPlayer.Builder(this, rf)
-                    .setMediaSourceFactory(androidx.media3.exoplayer.source.DefaultMediaSourceFactory(this, ef))
-                    .build()
-
-                pv.player = player
-                player?.addListener(object : Player.Listener {
-                    override fun onPlaybackStateChanged(s: Int) {
-                        if (s == Player.STATE_READY) {
-                            val dur = player?.duration ?: 0
-                            seekBar.max = dur.toInt()
                             updateProgress()
                         }
                     }
-                    override fun onPlayerError(error: PlaybackException) {
-                        Toast.makeText(this@PlayerActivity, "Play Error: ${error.message}", Toast.LENGTH_SHORT).show()
+                }
+
+                findViewById<Button>(
+                    R.id.btnPrev
+                ).setOnClickListener {
+
+                    if (curIdx > 0)
+                        playVideoAtIndex(
+                            curIdx - 1
+                        )
+                    else
+                        showIndicator(
+                            "First Video"
+                        )
+                }
+
+                findViewById<Button>(
+                    R.id.btnNext
+                ).setOnClickListener {
+
+                    if (
+                        curIdx <
+                        videoList.lastIndex
+                    )
+                        playVideoAtIndex(
+                            curIdx + 1
+                        )
+                    else
+                        showIndicator(
+                            "Last Video"
+                        )
+                }
+
+                findViewById<Button>(
+                    R.id.btnSpeed
+                ).setOnClickListener {
+                    showSpeedDialog()
+                }
+
+                findViewById<Button>(
+                    R.id.btnZoom
+                ).setOnClickListener { view ->
+
+                    zoomMode =
+                        (zoomMode + 1) % 3
+
+                    customScale = 1f
+                    transX = 0f
+                    transY = 0f
+
+                    val button =
+                        view as Button
+
+                    when (zoomMode) {
+
+                        0 -> {
+                            pv.resizeMode =
+                                AspectRatioFrameLayout
+                                    .RESIZE_MODE_FIT
+
+                            button.text =
+                                "FIT"
+                        }
+
+                        1 -> {
+                            pv.resizeMode =
+                                AspectRatioFrameLayout
+                                    .RESIZE_MODE_FILL
+
+                            button.text =
+                                "FILL"
+                        }
+
+                        else -> {
+                            pv.resizeMode =
+                                AspectRatioFrameLayout
+                                    .RESIZE_MODE_ZOOM
+
+                            button.text =
+                                "ZOOM"
+                        }
                     }
-                })
-                player?.setMediaItem(MediaItem.fromUri(uri))
-                player?.prepare(); player?.play()
-                btnPlay.text = "⏸"
+
+                    applyZoomAndPan()
+                }
+
+                findViewById<Button>(
+                    R.id.btnRotate
+                ).setOnClickListener {
+
+                    isLand = !isLand
+
+                    requestedOrientation =
+                        if (isLand)
+                            ActivityInfo
+                                .SCREEN_ORIENTATION_LANDSCAPE
+                        else
+                            ActivityInfo
+                                .SCREEN_ORIENTATION_PORTRAIT
+                }
+
+                findViewById<Button>(
+                    R.id.btnMenu
+                ).setOnClickListener {
+                    showMenuOptions(it)
+                }
+
+                seekBar.setOnSeekBarChangeListener(
+
+                    object :
+                        SeekBar.OnSeekBarChangeListener {
+
+                        override fun onProgressChanged(
+                            seekBar: SeekBar?,
+                            progress: Int,
+                            fromUser: Boolean
+                        ) {
+
+                            if (fromUser)
+                                player?.seekTo(
+                                    progress.toLong()
+                                )
+                        }
+
+                        override fun onStartTrackingTouch(
+                            seekBar: SeekBar?
+                        ) {}
+
+                        override fun onStopTrackingTouch(
+                            seekBar: SeekBar?
+                        ) {}
+                    }
+                )
             }
 
-            private fun updateProgress() {
-                player?.let {
-                    val cur = it.currentPosition
-                    val dur = it.duration
-                    seekBar.progress = cur.toInt()
-                    txtTime.text = "${fmtTime(cur)} / ${fmtTime(dur)}"
-                    if (it.isPlaying) handler.postDelayed({ updateProgress() }, 1000)
+            private fun applyZoomAndPan() {
+
+                val surface =
+                    pv.videoSurfaceView
+                        ?: return
+
+                surface.scaleX =
+                    customScale
+
+                surface.scaleY =
+                    customScale
+
+                surface.translationX =
+                    transX
+
+                surface.translationY =
+                    transY
+            }
+
+            private fun showSpeedDialog() {
+
+                val labels =
+                    arrayOf(
+                        "0.5x",
+                        "1.0x",
+                        "1.5x",
+                        "2.0x",
+                        "Custom Speed"
+                    )
+
+                val values =
+                    floatArrayOf(
+                        0.5f,
+                        1f,
+                        1.5f,
+                        2f
+                    )
+
+                AlertDialog.Builder(this)
+
+                    .setTitle(
+                        "Playback Speed"
+                    )
+
+                    .setItems(
+                        labels
+                    ) { _, index ->
+
+                        if (
+                            index <
+                            values.size
+                        ) {
+
+                            player?.playbackParameters =
+                                PlaybackParameters(
+                                    values[index]
+                                )
+
+                            showIndicator(
+                                "Speed ${labels[index]}"
+                            )
+
+                        } else {
+
+                            val input =
+                                android.widget.EditText(
+                                    this
+                                )
+
+                            input.hint =
+                                "Example: 1.25"
+
+                            input.inputType =
+                                android.text.InputType
+                                    .TYPE_CLASS_NUMBER or
+                                android.text.InputType
+                                    .TYPE_NUMBER_FLAG_DECIMAL
+
+                            AlertDialog.Builder(this)
+
+                                .setTitle(
+                                    "Custom Speed"
+                                )
+
+                                .setView(
+                                    input
+                                )
+
+                                .setPositiveButton(
+                                    "Set"
+                                ) { _, _ ->
+
+                                    val speed =
+                                        input.text
+                                            .toString()
+                                            .toFloatOrNull()
+                                            ?.coerceIn(
+                                                0.1f,
+                                                4f
+                                            )
+                                            ?: 1f
+
+                                    player?.playbackParameters =
+                                        PlaybackParameters(
+                                            speed
+                                        )
+
+                                    showIndicator(
+                                        "Speed ${speed}x"
+                                    )
+                                }
+
+                                .setNegativeButton(
+                                    "Cancel",
+                                    null
+                                )
+
+                                .show()
+                        }
+                    }
+
+                    .show()
+            }
+
+            private fun showMenuOptions(
+                anchor: View
+            ) {
+
+                val popup =
+                    android.widget.PopupMenu(
+                        this,
+                        anchor
+                    )
+
+                popup.menu.add(
+                    1,
+                    1,
+                    0,
+                    "Save Audio (M4A)"
+                )
+
+                popup.menu.add(
+                    1,
+                    2,
+                    1,
+                    if (ccOn)
+                        "CC: Subtitles OFF"
+                    else
+                        "CC: Subtitles ON"
+                )
+
+                popup.menu.add(
+                    1,
+                    3,
+                    2,
+                    "Audio Track"
+                )
+
+                popup.setOnMenuItemClickListener {
+
+                    when (it.itemId) {
+
+                        1 -> {
+
+                            if (
+                                videoList.isNotEmpty()
+                            ) {
+
+                                val item =
+                                    videoList[curIdx]
+
+                                showIndicator(
+                                    "Saving audio..."
+                                )
+
+                                thread {
+
+                                    saveAudioAsM4a(
+                                        Uri.parse(
+                                            item.uriString
+                                        ),
+                                        item.title
+                                    )
+                                }
+                            }
+                        }
+
+                        2 -> {
+
+                            ccOn = !ccOn
+
+                            player?.trackSelectionParameters =
+                                player
+                                    ?.trackSelectionParameters
+                                    ?.buildUpon()
+                                    ?.setTrackTypeDisabled(
+                                        C.TRACK_TYPE_TEXT,
+                                        !ccOn
+                                    )
+                                    ?.build()
+                                    ?: return@setOnMenuItemClickListener true
+
+                            showIndicator(
+                                if (ccOn)
+                                    "CC ON"
+                                else
+                                    "CC OFF"
+                            )
+                        }
+
+                        3 ->
+                            showAudioTrackSelection()
+                    }
+
+                    true
+                }
+
+                popup.show()
+            }
+
+            private fun showAudioTrackSelection() {
+
+                val tracks =
+                    player?.currentTracks
+                        ?: return
+
+                val names =
+                    ArrayList<String>()
+
+                val overrides =
+                    ArrayList<Pair<TrackGroup, Int>>()
+
+                for (group in tracks.groups) {
+
+                    if (
+                        group.type !=
+                        C.TRACK_TYPE_AUDIO
+                    )
+                        continue
+
+                    for (
+                        i in 0 until group.length
+                    ) {
+
+                        val format =
+                            group.getTrackFormat(i)
+
+                        val lang =
+                            format.language
+                                ?: "Track ${names.size + 1}"
+
+                        val codec =
+                            format.sampleMimeType
+                                ?: "audio"
+
+                        names.add(
+                            "$lang ($codec)"
+                        )
+
+                        overrides.add(
+                            Pair(
+                                group.mediaTrackGroup,
+                                i
+                            )
+                        )
+                    }
+                }
+
+                if (names.isEmpty()) {
+
+                    showIndicator(
+                        "No multiple audio tracks"
+                    )
+
+                    return
+                }
+
+                AlertDialog.Builder(this)
+
+                    .setTitle(
+                        "Select Audio Track"
+                    )
+
+                    .setItems(
+                        names.toTypedArray()
+                    ) { _, index ->
+
+                        val pair =
+                            overrides[index]
+
+                        player?.trackSelectionParameters =
+                            player
+                                ?.trackSelectionParameters
+                                ?.buildUpon()
+                                ?.setOverrideForType(
+                                    TrackSelectionOverride(
+                                        pair.first,
+                                        pair.second
+                                    )
+                                )
+                                ?.build()
+
+                        showIndicator(
+                            "Selected ${names[index]}"
+                        )
+                    }
+
+                    .show()
+            }
+
+            private fun enterPiP() {
+
+                if (
+                    Build.VERSION.SDK_INT >=
+                    Build.VERSION_CODES.O
+                ) {
+
+                    enterPictureInPictureMode(
+
+                        PictureInPictureParams
+                            .Builder()
+
+                            .setAspectRatio(
+                                Rational(
+                                    16,
+                                    9
+                                )
+                            )
+
+                            .build()
+                    )
+
+                } else {
+
+                    showIndicator(
+                        "PiP not supported"
+                    )
                 }
             }
 
-            private fun fmtTime(ms: Long): String {
-                val hrs = TimeUnit.MILLISECONDS.toHours(ms)
-                val mins = TimeUnit.MILLISECONDS.toMinutes(ms) % 60
-                val secs = TimeUnit.MILLISECONDS.toSeconds(ms) % 60
-                return if (hrs > 0) String.format("%02d:%02d:%02d", hrs, mins, secs)
-                else String.format("%02d:%02d", mins, secs)
+            override fun onUserLeaveHint() {
+
+                super.onUserLeaveHint()
+
+                if (
+                    Build.VERSION.SDK_INT >=
+                    Build.VERSION_CODES.O
+                    &&
+                    player?.isPlaying == true
+                ) {
+
+                    enterPiP()
+                }
             }
 
-            private fun saveAudio(uri: Uri, title: String) {
+            override fun onPictureInPictureModeChanged(
+                isInPictureInPictureMode: Boolean,
+                newConfig:
+                    android.content.res.Configuration
+            ) {
+
+                super.onPictureInPictureModeChanged(
+                    isInPictureInPictureMode,
+                    newConfig
+                )
+
+                val visibility =
+                    if (
+                        isInPictureInPictureMode
+                    )
+                        View.GONE
+                    else
+                        View.VISIBLE
+
+                topBar.visibility =
+                    visibility
+
+                bottomBar.visibility =
+                    visibility
+
+                btnLock.visibility =
+                    visibility
+
+                rightControls.visibility =
+                    visibility
+            }
+
+            private fun initPlayer(
+                uri: Uri
+            ) {
+
+                player?.release()
+
+                val renderers =
+                    DefaultRenderersFactory(this)
+                        .setExtensionRendererMode(
+                            DefaultRenderersFactory
+                                .EXTENSION_RENDERER_MODE_PREFER
+                        )
+
+                val extractors =
+                    DefaultExtractorsFactory()
+                        .setConstantBitrateSeekingEnabled(
+                            true
+                        )
+
+                        .setMp4ExtractorFlags(
+                            Mp4Extractor
+                                .FLAG_READ_SAMPLE_INDEX_DATA
+                        )
+
+                        .setTsExtractorFlags(
+                            DefaultTsPayloadReaderFactory
+                                .FLAG_ALLOW_NON_IDR_KEYFRAMES
+                        )
+
+                player =
+                    ExoPlayer.Builder(
+                        this,
+                        renderers
+                    )
+
+                        .setMediaSourceFactory(
+                            DefaultMediaSourceFactory(
+                                this,
+                                extractors
+                            )
+                        )
+
+                        .build()
+
+                pv.player =
+                    player
+
+                player?.addListener(
+                    object :
+                        Player.Listener {
+
+                        override fun
+                            onPlaybackStateChanged(
+                                state: Int
+                            ) {
+
+                            if (
+                                state ==
+                                Player.STATE_READY
+                            ) {
+
+                                val duration =
+                                    player?.duration
+                                        ?: 0L
+
+                                seekBar.max =
+                                    duration
+                                        .coerceAtMost(
+                                            Int.MAX_VALUE.toLong()
+                                        )
+                                        .toInt()
+
+                                updateProgress()
+                            }
+                        }
+
+                        override fun onPlayerError(
+                            error:
+                                PlaybackException
+                        ) {
+
+                            Toast.makeText(
+                                this@PlayerActivity,
+                                "Playback error: ${error.message}",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                    }
+                )
+
+                player?.setMediaItem(
+                    MediaItem.fromUri(
+                        uri
+                    )
+                )
+
+                player?.prepare()
+                player?.play()
+
+                btnPlay.text =
+                    "Pause"
+            }
+
+            private fun updateProgress() {
+
+                player?.let {
+
+                    val current =
+                        it.currentPosition
+                            .coerceAtLeast(0)
+
+                    val duration =
+                        it.duration
+                            .coerceAtLeast(0)
+
+                    seekBar.max =
+                        duration
+                            .coerceAtMost(
+                                Int.MAX_VALUE.toLong()
+                            )
+                            .toInt()
+
+                    seekBar.progress =
+                        current
+                            .coerceAtMost(
+                                Int.MAX_VALUE.toLong()
+                            )
+                            .toInt()
+
+                    txtTime.text =
+                        "${fmtTime(current)} / ${fmtTime(duration)}"
+
+                    if (it.isPlaying) {
+
+                        handler.postDelayed(
+                            {
+                                updateProgress()
+                            },
+                            500
+                        )
+                    }
+                }
+            }
+
+            private fun fmtTime(
+                ms: Long
+            ): String {
+
+                val safe =
+                    ms.coerceAtLeast(0)
+
+                val hrs =
+                    TimeUnit.MILLISECONDS
+                        .toHours(safe)
+
+                val mins =
+                    TimeUnit.MILLISECONDS
+                        .toMinutes(safe) % 60
+
+                val secs =
+                    TimeUnit.MILLISECONDS
+                        .toSeconds(safe) % 60
+
+                return if (hrs > 0)
+
+                    String.format(
+                        "%02d:%02d:%02d",
+                        hrs,
+                        mins,
+                        secs
+                    )
+
+                else
+
+                    String.format(
+                        "%02d:%02d",
+                        mins,
+                        secs
+                    )
+            }
+
+            private fun saveAudioAsM4a(
+                uri: Uri,
+                title: String
+            ) {
+
                 try {
-                    val ex = MediaExtractor()
-                    ex.setDataSource(this, uri, null)
-                    var aIdx = -1; var aFmt: MediaFormat? = null
-                    for (i in 0 until ex.trackCount) {
-                        val f = ex.getTrackFormat(i)
-                        if ((f.getString(MediaFormat.KEY_MIME) ?: "").startsWith("audio/")) { aIdx = i; aFmt = f; break }
+
+                    val extractor =
+                        MediaExtractor()
+
+                    extractor.setDataSource(
+                        this,
+                        uri,
+                        null
+                    )
+
+                    var audioIndex =
+                        -1
+
+                    var audioFormat:
+                        MediaFormat? = null
+
+                    for (
+                        i in 0 until extractor.trackCount
+                    ) {
+
+                        val format =
+                            extractor.getTrackFormat(i)
+
+                        val mime =
+                            format.getString(
+                                MediaFormat.KEY_MIME
+                            ) ?: ""
+
+                        if (
+                            mime.startsWith(
+                                "audio/"
+                            )
+                        ) {
+
+                            audioIndex =
+                                i
+
+                            audioFormat =
+                                format
+
+                            break
+                        }
                     }
-                    if (aIdx == -1 || aFmt == null) { runOnUiThread { show("No Audio!") }; ex.release(); return }
-                    ex.selectTrack(aIdx)
-                    val tmp = File(cacheDir, "t.m4a")
-                    val muxer = MediaMuxer(tmp.absolutePath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
-                    val trk = muxer.addTrack(aFmt)
+
+                    if (
+                        audioIndex == -1 ||
+                        audioFormat == null
+                    ) {
+
+                        extractor.release()
+
+                        runOnUiThread {
+
+                            showIndicator(
+                                "No audio track"
+                            )
+                        }
+
+                        return
+                    }
+
+                    extractor.selectTrack(
+                        audioIndex
+                    )
+
+                    val temp =
+                        File(
+                            cacheDir,
+                            "audio_${System.currentTimeMillis()}.m4a"
+                        )
+
+                    val muxer =
+                        MediaMuxer(
+                            temp.absolutePath,
+                            MediaMuxer
+                                .OutputFormat
+                                .MUXER_OUTPUT_MPEG_4
+                        )
+
+                    val outputTrack =
+                        muxer.addTrack(
+                            audioFormat
+                        )
+
                     muxer.start()
-                    val buf = ByteBuffer.allocate(1024 * 1024)
-                    val info = MediaCodec.BufferInfo()
+
+                    val buffer =
+                        ByteBuffer.allocate(
+                            1024 * 1024
+                        )
+
+                    val info =
+                        MediaCodec.BufferInfo()
+
                     while (true) {
-                        val sz = ex.readSampleData(buf, 0)
-                        if (sz < 0) break
-                        info.set(0, sz, ex.sampleTime, ex.sampleFlags)
-                        muxer.writeSampleData(trk, buf, info)
-                        ex.advance()
+
+                        val size =
+                            extractor.readSampleData(
+                                buffer,
+                                0
+                            )
+
+                        if (size < 0)
+                            break
+
+                        info.set(
+                            0,
+                            size,
+                            extractor.sampleTime,
+                            extractor.sampleFlags
+                        )
+
+                        muxer.writeSampleData(
+                            outputTrack,
+                            buffer,
+                            info
+                        )
+
+                        extractor.advance()
                     }
-                    muxer.stop(); muxer.release(); ex.release()
-                    val vals = ContentValues().apply {
-                        put(MediaStore.MediaColumns.DISPLAY_NAME, "${title.substringBeforeLast(".")}_Audio.mp3")
-                        put(MediaStore.MediaColumns.MIME_TYPE, "audio/mp3")
-                        if (Build.VERSION.SDK_INT >= 29) put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_MUSIC + "/VideoPlayer")
+
+                    muxer.stop()
+                    muxer.release()
+                    extractor.release()
+
+                    val values =
+                        android.content.ContentValues()
+                            .apply {
+
+                                put(
+                                    MediaStore
+                                        .MediaColumns
+                                        .DISPLAY_NAME,
+
+                                    "${title.substringBeforeLast(".")}_Audio.m4a"
+                                )
+
+                                put(
+                                    MediaStore
+                                        .MediaColumns
+                                        .MIME_TYPE,
+                                    "audio/mp4"
+                                )
+
+                                if (
+                                    Build.VERSION.SDK_INT >= 29
+                                ) {
+
+                                    put(
+                                        MediaStore
+                                            .MediaColumns
+                                            .RELATIVE_PATH,
+
+                                        Environment
+                                            .DIRECTORY_MUSIC
+                                            +
+                                            "/VideoPlayer"
+                                    )
+                                }
+                            }
+
+                    val outputUri =
+                        contentResolver.insert(
+                            MediaStore
+                                .Audio
+                                .Media
+                                .EXTERNAL_CONTENT_URI,
+                            values
+                        )
+
+                    if (
+                        outputUri == null
+                    ) {
+
+                        temp.delete()
+
+                        throw IllegalStateException(
+                            "Could not create output file"
+                        )
                     }
-                    contentResolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, vals)?.let { outUri ->
-                        contentResolver.openOutputStream(outUri)?.use { os -> FileInputStream(tmp).use { it.copyTo(os) } }
+
+                    contentResolver
+                        .openOutputStream(
+                            outputUri
+                        )
+                        ?.use { output ->
+
+                            FileInputStream(
+                                temp
+                            ).use { input ->
+
+                                input.copyTo(
+                                    output
+                                )
+                            }
+                        }
+
+                    temp.delete()
+
+                    runOnUiThread {
+
+                        showIndicator(
+                            "Audio saved as M4A"
+                        )
+
+                        Toast.makeText(
+                            this,
+                            "Saved in Music/VideoPlayer",
+                            Toast.LENGTH_LONG
+                        ).show()
                     }
-                    tmp.delete()
-                    runOnUiThread { show("Saved to Music/VideoPlayer!"); Toast.makeText(this, "Saved as MP3!", Toast.LENGTH_LONG).show() }
-                } catch (e: Exception) { runOnUiThread { show("Failed: ${e.message}") } }
+
+                } catch (e: Exception) {
+
+                    runOnUiThread {
+
+                        showIndicator(
+                            "Audio failed: ${e.message}"
+                        )
+                    }
+                }
             }
 
             private fun takeSnap() {
-                val sv = pv.videoSurfaceView
-                if (sv is TextureView) {
-                    sv.bitmap?.let { bm ->
-                        val vals = ContentValues().apply {
-                            put(MediaStore.MediaColumns.DISPLAY_NAME, "Snap_${System.currentTimeMillis()}.jpg")
-                            put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
-                            if (Build.VERSION.SDK_INT >= 29) put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/VideoPlayer")
-                        }
-                        contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, vals)?.let { u ->
-                            contentResolver.openOutputStream(u)?.use { bm.compress(Bitmap.CompressFormat.JPEG, 100, it) }
-                        }
-                        show("HD Photo Saved!")
+
+                val surface =
+                    pv.videoSurfaceView
+
+                if (
+                    surface is TextureView
+                ) {
+
+                    val bitmap =
+                        surface.bitmap
+                            ?: run {
+
+                                showIndicator(
+                                    "Screenshot unavailable"
+                                )
+
+                                return
+                            }
+
+                    val values =
+                        android.content.ContentValues()
+                            .apply {
+
+                                put(
+                                    MediaStore
+                                        .MediaColumns
+                                        .DISPLAY_NAME,
+
+                                    "Snap_${System.currentTimeMillis()}.jpg"
+                                )
+
+                                put(
+                                    MediaStore
+                                        .MediaColumns
+                                        .MIME_TYPE,
+                                    "image/jpeg"
+                                )
+
+                                if (
+                                    Build.VERSION.SDK_INT >= 29
+                                ) {
+
+                                    put(
+                                        MediaStore
+                                            .MediaColumns
+                                            .RELATIVE_PATH,
+
+                                        Environment
+                                            .DIRECTORY_PICTURES
+                                            +
+                                            "/VideoPlayer"
+                                    )
+                                }
+                            }
+
+                    val uri =
+                        contentResolver.insert(
+                            MediaStore
+                                .Images
+                                .Media
+                                .EXTERNAL_CONTENT_URI,
+                            values
+                        )
+
+                    if (uri != null) {
+
+                        contentResolver
+                            .openOutputStream(uri)
+                            ?.use {
+
+                                bitmap.compress(
+                                    Bitmap.CompressFormat.JPEG,
+                                    95,
+                                    it
+                                )
+                            }
+
+                        showIndicator(
+                            "Photo saved"
+                        )
                     }
+
+                    bitmap.recycle()
                 }
             }
 
             private fun setupGestures() {
-                scaleDetector = ScaleGestureDetector(this, object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
-                    override fun onScale(d: ScaleGestureDetector): Boolean {
-                        if (zoomMode == 2) {
-                            customScale = (customScale * d.scaleFactor).coerceIn(1.0f, 4.0f)
-                            applyZoomAndPan()
-                            show("Zoom: ${(customScale * 100).toInt()}%")
-                            return true
-                        }
-                        return false
-                    }
-                })
 
-                gd = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
-                    override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
-                        if (isLock) return false
-                        val v = if (bottomBar.visibility == View.VISIBLE) View.GONE else View.VISIBLE
-                        topBar.visibility = v; bottomBar.visibility = v; btnLock.visibility = v; rightControls.visibility = v
-                        return true
-                    }
+                scaleDetector =
+                    ScaleGestureDetector(
 
-                    override fun onDoubleTap(e: MotionEvent): Boolean {
-                        if (isLock) return false
-                        val fwd = e.x > resources.displayMetrics.widthPixels / 2
-                        player?.seekTo(if (fwd) (player?.currentPosition ?: 0) + 10000 else maxOf((player?.currentPosition ?: 0) - 10000, 0))
-                        show(if (fwd) ">> +10s" else "<< -10s")
-                        return true
-                    }
+                        this,
 
-                    override fun onScroll(e1: MotionEvent?, e2: MotionEvent, dx: Float, dy: Float): Boolean {
-                        if (isLock || e1 == null) return false
-                        val width = resources.displayMetrics.widthPixels
+                        object :
+                            ScaleGestureDetector
+                                .SimpleOnScaleGestureListener() {
 
-                        if (e2.pointerCount >= 2 && zoomMode == 2) {
-                            transX -= dx
-                            transY -= dy
-                            applyZoomAndPan()
-                            return true
-                        }
+                            override fun onScale(
+                                detector:
+                                    ScaleGestureDetector
+                            ): Boolean {
 
-                        if (abs(dx) > abs(dy)) {
-                            if (!isSeekingViaSwipe) {
-                                isSeekingViaSwipe = true
-                                swipeSeekPos = player?.currentPosition ?: 0L
+                                if (
+                                    zoomMode != 2
+                                )
+                                    return false
+
+                                customScale =
+                                    (
+                                        customScale *
+                                        detector.scaleFactor
+                                    ).coerceIn(
+                                        1f,
+                                        4f
+                                    )
+
+                                applyZoomAndPan()
+
+                                showIndicator(
+                                    "Zoom ${(customScale * 100).toInt()}%"
+                                )
+
+                                return true
                             }
-                            val dur = player?.duration ?: 0L
-                            swipeSeekPos = (swipeSeekPos + (-dx * 200).toLong()).coerceIn(0L, dur)
-                            val icon = if (dx < 0) ">>" else "<<"
-                            show("$icon ${fmtTime(swipeSeekPos)} / ${fmtTime(dur)}")
-                            return true
+                        }
+                    )
+
+                gd =
+                    GestureDetector(
+
+                        this,
+
+                        object :
+                            GestureDetector
+                                .SimpleOnGestureListener() {
+
+                            override fun
+                                onSingleTapConfirmed(
+                                    e: MotionEvent
+                                ): Boolean {
+
+                                if (isLock)
+                                    return false
+
+                                val visibility =
+                                    if (
+                                        bottomBar.visibility ==
+                                        View.VISIBLE
+                                    )
+                                        View.GONE
+                                    else
+                                        View.VISIBLE
+
+                                topBar.visibility =
+                                    visibility
+
+                                bottomBar.visibility =
+                                    visibility
+
+                                btnLock.visibility =
+                                    visibility
+
+                                rightControls.visibility =
+                                    visibility
+
+                                return true
+                            }
+
+                            override fun onDoubleTap(
+                                e: MotionEvent
+                            ): Boolean {
+
+                                if (isLock)
+                                    return false
+
+                                val current =
+                                    player?.currentPosition
+                                        ?: 0L
+
+                                val forward =
+                                    e.x >
+                                    resources
+                                        .displayMetrics
+                                        .widthPixels / 2f
+
+                                player?.seekTo(
+
+                                    if (forward)
+
+                                        current + 10000
+
+                                    else
+
+                                        (current - 10000)
+                                            .coerceAtLeast(0)
+                                )
+
+                                showIndicator(
+
+                                    if (forward)
+                                        "+10 seconds"
+                                    else
+                                        "-10 seconds"
+                                )
+
+                                return true
+                            }
+
+                            override fun onScroll(
+                                e1: MotionEvent?,
+                                e2: MotionEvent,
+                                distanceX: Float,
+                                distanceY: Float
+                            ): Boolean {
+
+                                if (
+                                    isLock ||
+                                    e1 == null
+                                )
+                                    return false
+
+                                val width =
+                                    resources
+                                        .displayMetrics
+                                        .widthPixels
+
+                                if (
+                                    e2.pointerCount >= 2 &&
+                                    zoomMode == 2
+                                ) {
+
+                                    transX -=
+                                        distanceX
+
+                                    transY -=
+                                        distanceY
+
+                                    applyZoomAndPan()
+
+                                    return true
+                                }
+
+                                if (
+                                    abs(distanceX) >
+                                    abs(distanceY)
+                                ) {
+
+                                    if (
+                                        !isSeekingViaSwipe
+                                    ) {
+
+                                        isSeekingViaSwipe =
+                                            true
+
+                                        swipeSeekPos =
+                                            player?.currentPosition
+                                                ?: 0L
+                                    }
+
+                                    val duration =
+                                        player?.duration
+                                            ?: 0L
+
+                                    swipeSeekPos =
+                                        (
+                                            swipeSeekPos +
+                                            (
+                                                -distanceX * 100
+                                            ).toLong()
+                                        ).coerceIn(
+                                            0L,
+                                            duration.coerceAtLeast(0)
+                                        )
+
+                                    showIndicator(
+                                        "${fmtTime(swipeSeekPos)} / ${fmtTime(duration)}"
+                                    )
+
+                                    return true
+                                }
+
+                                if (
+                                    e1.x >
+                                    width / 2f
+                                ) {
+
+                                    curVolProgress =
+                                        (
+                                            curVolProgress +
+                                            (
+                                                distanceY / 70f
+                                            )
+                                        ).coerceIn(
+                                            0f,
+                                            maxVol.toFloat()
+                                        )
+
+                                    am.setStreamVolume(
+                                        AudioManager.STREAM_MUSIC,
+                                        curVolProgress.toInt(),
+                                        0
+                                    )
+
+                                    showIndicator(
+                                        "Volume ${((curVolProgress / maxVol) * 100).toInt()}%"
+                                    )
+
+                                } else {
+
+                                    curBri =
+                                        (
+                                            curBri +
+                                            (
+                                                distanceY / 2500f
+                                            )
+                                        ).coerceIn(
+                                            0.01f,
+                                            1f
+                                        )
+
+                                    window.attributes =
+                                        window.attributes.apply {
+                                            screenBrightness =
+                                                curBri
+                                        }
+
+                                    showIndicator(
+                                        "Brightness ${(curBri * 100).toInt()}%"
+                                    )
+                                }
+
+                                return true
+                            }
+                        }
+                    )
+
+                pv.setOnTouchListener { _, event ->
+
+                    scaleDetector
+                        .onTouchEvent(event)
+
+                    gd.onTouchEvent(event)
+
+                    if (
+                        event.actionMasked ==
+                        MotionEvent.ACTION_UP
+                        ||
+                        event.actionMasked ==
+                        MotionEvent.ACTION_CANCEL
+                    ) {
+
+                        if (
+                            isSeekingViaSwipe
+                        ) {
+
+                            player?.seekTo(
+                                swipeSeekPos
+                            )
+
+                            isSeekingViaSwipe =
+                                false
                         }
 
-                        if (e1.x > width / 2) {
-                            curVolProgress = (curVolProgress + (dy / 70f)).coerceIn(0f, maxVol.toFloat())
-                            am.setStreamVolume(AudioManager.STREAM_MUSIC, curVolProgress.toInt(), 0)
-                            show("Vol: ${((curVolProgress / maxVol) * 100).toInt()}%")
-                        } else {
-                            curBri = (curBri + (dy / 2500f)).coerceIn(0.01f, 1.0f)
-                            window.attributes = window.attributes.apply { screenBrightness = curBri }
-                            show("Bri: ${(curBri * 100).toInt()}%")
-                        }
-                        return true
+                        handler.postDelayed(
+                            {
+                                txtInd.visibility =
+                                    View.GONE
+                            },
+                            1000
+                        )
                     }
-                })
 
-                pv.setOnTouchListener { _, ev ->
-                    scaleDetector.onTouchEvent(ev)
-                    gd.onTouchEvent(ev)
-                    if (ev.action == MotionEvent.ACTION_UP) {
-                        if (isSeekingViaSwipe) {
-                            player?.seekTo(swipeSeekPos)
-                            isSeekingViaSwipe = false
-                        }
-                        txtInd.postDelayed({ txtInd.visibility = View.GONE }, 1000)
-                    }
                     true
                 }
             }
 
-            private fun show(msg: String) { txtInd.text = msg; txtInd.visibility = View.VISIBLE }
+            private fun showIndicator(
+                message: String
+            ) {
+
+                txtInd.text =
+                    message
+
+                txtInd.visibility =
+                    View.VISIBLE
+
+                handler.removeCallbacksAndMessages(
+                    null
+                )
+
+                handler.postDelayed(
+                    {
+                        txtInd.visibility =
+                            View.GONE
+                    },
+                    1200
+                )
+            }
+
             override fun onDestroy() {
-                super.onDestroy()
-                unregisterReceiver(batteryReceiver)
+
+                handler.removeCallbacksAndMessages(
+                    null
+                )
+
+                runCatching {
+                    unregisterReceiver(
+                        batteryReceiver
+                    )
+                }
+
                 player?.release()
                 player = null
+
+                super.onDestroy()
             }
         }
+
         EOF
 
-    - name: Build Debug APK with Gradle
-      run: gradle assembleDebug
+
+    - name: Generate Gradle Wrapper
+      run: gradle wrapper --gradle-version 8.5
+
+    - name: Make Gradle executable
+      run: chmod +x ./gradlew
+
+    - name: Build Debug APK
+      run: ./gradlew assembleDebug --stacktrace
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: Video-Manager-Pro-APK
         path: app/build/outputs/apk/debug/*.apk
+        if-no-files-found: error
