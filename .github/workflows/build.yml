@@ -106,6 +106,7 @@ jobs:
             implementation 'androidx.media3:media3-extractor:1.2.1'
         }
         EOF
+
         cat << 'EOF' > app/src/main/AndroidManifest.xml
         <?xml version="1.0" encoding="utf-8"?>
         <manifest xmlns:android="http://schemas.android.com/apk/res/android">
@@ -144,7 +145,6 @@ jobs:
             <string name="app_name">Video</string>
         </resources>
         EOF
-
         cat << 'EOF' > app/src/main/res/layout/activity_main.xml
         <?xml version="1.0" encoding="utf-8"?>
         <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -156,7 +156,7 @@ jobs:
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="16dp"
+                android:padding="14dp"
                 android:gravity="center_vertical">
                 <TextView
                     android:id="@+id/txtHeaderTitle"
@@ -172,14 +172,14 @@ jobs:
                     android:layout_width="wrap_content"
                     android:layout_height="36dp"
                     android:text="Open File"
-                    android:textSize="12sp" />
+                    android:textSize="11sp" />
                 <Button
                     android:id="@+id/btnRecycleBin"
                     android:layout_width="wrap_content"
                     android:layout_height="36dp"
-                    android:layout_marginStart="8dp"
+                    android:layout_marginStart="6dp"
                     android:text="🗑 Bin"
-                    android:textSize="12sp"
+                    android:textSize="11sp"
                     android:backgroundTint="#B71C1C" />
             </LinearLayout>
 
@@ -187,8 +187,8 @@ jobs:
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:paddingHorizontal="16dp"
-                android:layout_marginBottom="8dp">
+                android:paddingHorizontal="14dp"
+                android:layout_marginBottom="6dp">
                 <Button
                     android:id="@+id/tabVideos"
                     android:layout_width="0dp"
@@ -203,7 +203,7 @@ jobs:
                     android:layout_height="36dp"
                     android:layout_weight="1"
                     android:layout_marginStart="8dp"
-                    android:text="Folders"
+                    android:text="All Folders"
                     android:textColor="#FFFFFF"
                     android:backgroundTint="#1F1F1F" />
             </LinearLayout>
@@ -212,7 +212,7 @@ jobs:
                 android:id="@+id/etSearchVideos"
                 android:layout_width="match_parent"
                 android:layout_height="44dp"
-                android:layout_marginHorizontal="16dp"
+                android:layout_marginHorizontal="14dp"
                 android:layout_marginBottom="8dp"
                 android:paddingHorizontal="14dp"
                 android:background="#222222"
@@ -228,6 +228,7 @@ jobs:
                 android:layout_height="match_parent" />
         </LinearLayout>
         EOF
+
         cat << 'EOF' > app/src/main/res/layout/item_video.xml
         <?xml version="1.0" encoding="utf-8"?>
         <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -238,23 +239,23 @@ jobs:
             android:background="?android:attr/selectableItemBackground">
             <ImageView
                 android:id="@+id/imgThumb"
-                android:layout_width="64dp"
-                android:layout_height="64dp"
+                android:layout_width="52dp"
+                android:layout_height="52dp"
                 android:scaleType="centerCrop"
-                android:background="#222222"
-                android:src="@android:drawable/ic_media_play" />
+                android:src="@android:drawable/ic_media_play"
+                android:tint="#00E676" />
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="vertical"
-                android:layout_marginStart="14dp">
+                android:layout_marginStart="12dp">
                 <TextView
                     android:id="@+id/txtTitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:textColor="#FFFFFF"
-                    android:textSize="15sp"
+                    android:textSize="14sp"
                     android:textStyle="bold"
                     android:maxLines="1"
                     android:ellipsize="end" />
@@ -262,9 +263,9 @@ jobs:
                     android:id="@+id/txtDuration"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textColor="#00E676"
-                    android:textSize="13sp"
-                    android:layout_marginTop="3dp" />
+                    android:textColor="#AAAAAA"
+                    android:textSize="12sp"
+                    android:layout_marginTop="2dp" />
             </LinearLayout>
             <Button
                 android:id="@+id/btnItemMenu"
@@ -433,7 +434,6 @@ jobs:
         EOF
         cat << 'EOF' > app/src/main/java/com/example/universalplayer/VideoItem.kt
         package com.example.universalplayer
-        import android.graphics.Bitmap
         import java.io.Serializable
         data class VideoItem(
             val id: Long,
@@ -442,23 +442,13 @@ jobs:
             val uriString: String,
             val filePath: String = "",
             val folder: String = "Internal",
-            val sizeBytes: Long = 0L,
-            val resolution: String = "",
             val isFolder: Boolean = false,
             val count: Int = 0
-        ) : Serializable {
-            @Transient var thumbBitmap: Bitmap? = null
-        }
+        ) : Serializable
         EOF
 
         cat << 'EOF' > app/src/main/java/com/example/universalplayer/VideoAdapter.kt
         package com.example.universalplayer
-        import android.content.ContentUris
-        import android.graphics.Bitmap
-        import android.net.Uri
-        import android.os.Build
-        import android.provider.MediaStore
-        import android.util.Size
         import android.view.LayoutInflater
         import android.view.View
         import android.view.ViewGroup
@@ -466,7 +456,6 @@ jobs:
         import android.widget.ImageView
         import android.widget.TextView
         import androidx.recyclerview.widget.RecyclerView
-        import kotlin.concurrent.thread
 
         class VideoAdapter(
             private var list: List<VideoItem>,
@@ -484,32 +473,8 @@ jobs:
                 val item = list[pos]
                 h.t.text = item.title
                 h.d.text = if (item.isFolder) "${item.count} Videos" else item.duration
+                h.img.setImageResource(if (item.isFolder) android.R.drawable.ic_dialog_dialer else android.R.drawable.ic_media_play)
                 h.m.visibility = if (item.isFolder) View.GONE else View.VISIBLE
-
-                if (item.isFolder) {
-                    h.img.setImageResource(android.R.drawable.ic_dialog_dialer)
-                } else {
-                    if (item.thumbBitmap != null) {
-                        h.img.setImageBitmap(item.thumbBitmap)
-                    } else {
-                        h.img.setImageResource(android.R.drawable.ic_media_play)
-                        val u = Uri.parse(item.uriString)
-                        val cr = h.itemView.context.contentResolver
-                        thread {
-                            try {
-                                val bm = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                                    cr.loadThumbnail(u, Size(120, 120), null)
-                                } else {
-                                    MediaStore.Video.Thumbnails.getThumbnail(cr, item.id, MediaStore.Video.Thumbnails.MINI_KIND, null)
-                                }
-                                if (bm != null) {
-                                    item.thumbBitmap = bm
-                                    h.img.post { h.img.setImageBitmap(bm) }
-                                }
-                            } catch (_: Exception) {}
-                        }
-                    }
-                }
                 h.itemView.setOnClickListener { onClick(pos) }
                 h.m.setOnClickListener { onMenu(it, pos) }
             }
@@ -517,6 +482,7 @@ jobs:
             fun update(newList: List<VideoItem>) { list = newList; notifyDataSetChanged() }
         }
         EOF
+
         cat << 'EOF' > app/src/main/java/com/example/universalplayer/MainActivity.kt
         package com.example.universalplayer
         import android.Manifest
@@ -538,6 +504,8 @@ jobs:
         import androidx.recyclerview.widget.LinearLayoutManager
         import androidx.recyclerview.widget.RecyclerView
         import java.io.File
+        import java.text.SimpleDateFormat
+        import java.util.*
         import java.util.concurrent.TimeUnit
         import kotlin.concurrent.thread
 
@@ -607,9 +575,13 @@ jobs:
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                     if (!Environment.isExternalStorageManager()) {
                         try {
-                            startActivity(Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, Uri.parse("package:$packageName")))
+                            val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION).apply {
+                                data = Uri.parse("package:$packageName")
+                            }
+                            startActivity(intent)
                         } catch (_: Exception) {
-                            startActivity(Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION))
+                            val intent = Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
+                            startActivity(intent)
                         }
                     }
                 }
@@ -626,13 +598,12 @@ jobs:
 
             private fun loadVideos() {
                 allVideos.clear()
+                val binSet = prefs.getStringSet("bin_items", emptySet()) ?: emptySet()
                 val proj = arrayOf(
                     MediaStore.Video.Media._ID,
                     MediaStore.Video.Media.DISPLAY_NAME,
                     MediaStore.Video.Media.DURATION,
                     MediaStore.Video.Media.DATA,
-                    MediaStore.Video.Media.SIZE,
-                    MediaStore.Video.Media.RESOLUTION,
                     MediaStore.Video.Media.BUCKET_DISPLAY_NAME
                 )
 
@@ -641,22 +612,19 @@ jobs:
                     val nameCol = c.getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME)
                     val durCol = c.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)
                     val dataCol = c.getColumnIndex(MediaStore.Video.Media.DATA)
-                    val sizeCol = c.getColumnIndex(MediaStore.Video.Media.SIZE)
-                    val resCol = c.getColumnIndex(MediaStore.Video.Media.RESOLUTION)
                     val bucketCol = c.getColumnIndex(MediaStore.Video.Media.BUCKET_DISPLAY_NAME)
 
                     while (c.moveToNext()) {
                         val id = c.getLong(idCol)
-                        val ms = c.getLong(durCol)
+                        var ms = c.getLong(durCol)
                         val path = if (dataCol != -1) c.getString(dataCol) ?: "" else ""
                         val name = c.getString(nameCol) ?: "Video"
-                        val size = if (sizeCol != -1) c.getLong(sizeCol) else 0L
-                        val res = if (resCol != -1) c.getString(resCol) ?: "" else ""
                         val folder = if (bucketCol != -1) c.getString(bucketCol) ?: "Internal" else "Internal"
                         val u = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id).toString()
 
-                        val dur = if (ms > 0) formatDuration(ms) else "00:00"
-                        allVideos.add(VideoItem(id, name, dur, u, path, folder, size, res))
+                        var dur = if (ms > 0) formatDuration(ms) else "00:00"
+                        val item = VideoItem(id, name, dur, u, path, folder)
+                        allVideos.add(item)
                     }
                 }
                 updateView()
@@ -667,7 +635,11 @@ jobs:
                         if (item.duration == "00:00") {
                             try {
                                 val retriever = MediaMetadataRetriever()
-                                retriever.setDataSource(this@MainActivity, Uri.parse(item.uriString))
+                                if (item.filePath.isNotEmpty() && File(item.filePath).exists()) {
+                                    retriever.setDataSource(item.filePath)
+                                } else {
+                                    retriever.setDataSource(this@MainActivity, Uri.parse(item.uriString))
+                                }
                                 val time = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull() ?: 0L
                                 retriever.release()
                                 if (time > 0) {
@@ -677,7 +649,9 @@ jobs:
                             } catch (_: Exception) {}
                         }
                     }
-                    if (updated) runOnUiThread { adapter.notifyDataSetChanged() }
+                    if (updated) {
+                        runOnUiThread { adapter.notifyDataSetChanged() }
+                    }
                 }
             }
 
@@ -688,7 +662,6 @@ jobs:
                 return if (hrs > 0) String.format("%02d:%02d:%02d", hrs, mins, secs)
                 else String.format("%02d:%02d", mins, secs)
             }
-
             private fun updateView() {
                 currentDisplayList.clear()
                 val binSet = prefs.getStringSet("bin_items", emptySet()) ?: emptySet()
@@ -698,11 +671,11 @@ jobs:
                     titleView.text = "Recycle Bin"
                     currentDisplayList.addAll(allVideos.filter { binSet.contains(it.id.toString()) })
                 } else if (isFolderMode) {
-                    titleView.text = "Folders"
+                    titleView.text = "All Folders"
                     val valid = allVideos.filter { !binSet.contains(it.id.toString()) }
                     val map = valid.groupBy { it.folder }
                     for ((folder, list) in map) {
-                        currentDisplayList.add(VideoItem(0, folder, "", "", "", folder, 0L, "", true, list.size))
+                        currentDisplayList.add(VideoItem(0, folder, "", "", "", folder, true, list.size))
                     }
                 } else {
                     titleView.text = "All Videos"
@@ -736,18 +709,17 @@ jobs:
                 val item = currentDisplayList[idx]
                 val p = PopupMenu(this, v)
                 if (isBinMode) {
-                    p.menu.add("Information")
                     p.menu.add("Restore")
                     p.menu.add("Delete Permanently")
                 } else {
-                    p.menu.add("Information")
+                    p.menu.add("File Information")
                     p.menu.add("Rename")
                     p.menu.add("Move to Recycle Bin")
                     p.menu.add("Delete Permanently")
                 }
                 p.setOnMenuItemClickListener { m ->
                     when (m.title) {
-                        "Information" -> showVideoInfo(item)
+                        "File Information" -> showFileInfoDialog(item)
                         "Restore" -> {
                             val binSet = HashSet(prefs.getStringSet("bin_items", emptySet()) ?: emptySet())
                             binSet.remove(item.id.toString())
@@ -769,7 +741,7 @@ jobs:
                                     binSet.remove(item.id.toString())
                                     prefs.edit().putStringSet("bin_items", binSet).apply()
                                     loadVideos()
-                                } catch (e: Exception) { Toast.makeText(this, "Cannot delete: ${e.message}", Toast.LENGTH_SHORT).show() }
+                                } catch (e: Exception) { Toast.makeText(this, "Cannot delete file directly: ${e.message}", Toast.LENGTH_SHORT).show() }
                             }.setNegativeButton("Cancel", null).show()
                         }
                         "Rename" -> {
@@ -788,35 +760,37 @@ jobs:
                 p.show()
             }
 
-            private fun showVideoInfo(item: VideoItem) {
-                val sizeStr = if (item.sizeBytes >= 1024 * 1024 * 1024) {
-                    String.format("%.2f GB", item.sizeBytes.toDouble() / (1024 * 1024 * 1024))
-                } else {
-                    String.format("%.2f MB", item.sizeBytes.toDouble() / (1024 * 1024))
-                }
-                val pathStr = if (item.filePath.isNotEmpty()) item.filePath else item.uriString
+            private fun showFileInfoDialog(item: VideoItem) {
+                val f = if (item.filePath.isNotEmpty()) File(item.filePath) else null
+                val sizeStr = if (f != null && f.exists()) String.format("%.2f MB", f.length().toDouble() / (1024 * 1024)) else "Unknown"
+                var resStr = "Unknown"; var vCodec = "Default"; var aCodec = "Default"
 
-                val info = """
-                    📌 Title: ${item.title}
-                    
-                    ⏱ Duration: ${item.duration}
-                    
-                    💾 Size: $sizeStr
-                    
-                    📺 Quality: ${if (item.resolution.isNotEmpty()) item.resolution else "HD/FHD"}
-                    
-                    📁 Path:
-                    $pathStr
+                try {
+                    val retriever = MediaMetadataRetriever()
+                    if (item.filePath.isNotEmpty() && File(item.filePath).exists()) retriever.setDataSource(item.filePath)
+                    else retriever.setDataSource(this, Uri.parse(item.uriString))
+                    val w = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH) ?: ""
+                    val h = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT) ?: ""
+                    if (w.isNotEmpty() && h.isNotEmpty()) resStr = "${w}x${h}"
+                    vCodec = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_MIMETYPE) ?: "video/mp4"
+                    retriever.release()
+                } catch (_: Exception) {}
+
+                val msg = """
+                    File Name: ${item.title}
+                    Size: $sizeStr
+                    Duration: ${item.duration}
+                    Resolution: $resStr
+                    Format / Codec: $vCodec
+                    Path: ${item.filePath.ifEmpty { item.uriString }}
+                    Folder: ${item.folder}
                 """.trimIndent()
 
-                AlertDialog.Builder(this)
-                    .setTitle("Video Information")
-                    .setMessage(info)
-                    .setPositiveButton("Close", null)
-                    .show()
+                AlertDialog.Builder(this).setTitle("Video Information").setMessage(msg).setPositiveButton("OK", null).show()
             }
         }
         EOF
+
         cat << 'EOF' > app/src/main/java/com/example/universalplayer/PlayerActivity.kt
         package com.example.universalplayer
         import android.app.PictureInPictureParams
@@ -923,7 +897,6 @@ jobs:
                 setupGestures()
                 playVideoAtIndex(curIdx)
             }
-
             private fun playVideoAtIndex(idx: Int) {
                 if (videoList.isEmpty() || idx !in 0 until videoList.size) return
                 curIdx = idx
@@ -994,14 +967,14 @@ jobs:
             }
 
             private fun showSpeedDialog() {
-                val opts = arrayOf("0.5x", "0.75x", "1.0x", "1.25x", "1.5x", "1.75x", "2.0x", "Custom Speed")
-                val vals = floatArrayOf(0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 1.75f, 2.0f)
+                val opts = arrayOf("0.5x", "1.0x", "1.5x", "2.0x", "Custom Speed")
+                val vals = floatArrayOf(0.5f, 1.0f, 1.5f, 2.0f)
                 AlertDialog.Builder(this).setTitle("Playback Speed").setItems(opts) { _, idx ->
                     if (idx < vals.size) {
                         player?.playbackParameters = PlaybackParameters(vals[idx])
                         show("Speed: ${opts[idx]}")
                     } else {
-                        val et = EditText(this).apply { hint = "e.g. 1.35"; setRawInputType(android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL) }
+                        val et = EditText(this).apply { hint = "e.g. 1.25"; setRawInputType(android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL) }
                         AlertDialog.Builder(this).setTitle("Enter Custom Speed").setView(et).setPositiveButton("Set") { _, _ ->
                             val sp = et.text.toString().toFloatOrNull() ?: 1.0f
                             player?.playbackParameters = PlaybackParameters(sp)
