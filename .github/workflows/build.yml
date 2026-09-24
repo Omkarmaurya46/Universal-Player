@@ -76,8 +76,8 @@ jobs:
                 applicationId "com.example.universalplayer"
                 minSdk 26
                 targetSdk 34
-                versionCode 20
-                versionName "20.0"
+                versionCode 21
+                versionName "21.0"
             }
 
             buildTypes {
@@ -504,8 +504,6 @@ jobs:
         import androidx.recyclerview.widget.LinearLayoutManager
         import androidx.recyclerview.widget.RecyclerView
         import java.io.File
-        import java.text.SimpleDateFormat
-        import java.util.*
         import java.util.concurrent.TimeUnit
         import kotlin.concurrent.thread
 
@@ -662,6 +660,7 @@ jobs:
                 return if (hrs > 0) String.format("%02d:%02d:%02d", hrs, mins, secs)
                 else String.format("%02d:%02d", mins, secs)
             }
+
             private fun updateView() {
                 currentDisplayList.clear()
                 val binSet = prefs.getStringSet("bin_items", emptySet()) ?: emptySet()
@@ -763,7 +762,7 @@ jobs:
             private fun showFileInfoDialog(item: VideoItem) {
                 val f = if (item.filePath.isNotEmpty()) File(item.filePath) else null
                 val sizeStr = if (f != null && f.exists()) String.format("%.2f MB", f.length().toDouble() / (1024 * 1024)) else "Unknown"
-                var resStr = "Unknown"; var vCodec = "Default"; var aCodec = "Default"
+                var resStr = "Unknown"; var vCodec = "Default"
 
                 try {
                     val retriever = MediaMetadataRetriever()
@@ -781,7 +780,7 @@ jobs:
                     Size: $sizeStr
                     Duration: ${item.duration}
                     Resolution: $resStr
-                    Format / Codec: $vCodec
+                    Format: $vCodec
                     Path: ${item.filePath.ifEmpty { item.uriString }}
                     Folder: ${item.folder}
                 """.trimIndent()
@@ -790,7 +789,6 @@ jobs:
             }
         }
         EOF
-
         cat << 'EOF' > app/src/main/java/com/example/universalplayer/PlayerActivity.kt
         package com.example.universalplayer
         import android.app.PictureInPictureParams
@@ -897,6 +895,7 @@ jobs:
                 setupGestures()
                 playVideoAtIndex(curIdx)
             }
+
             private fun playVideoAtIndex(idx: Int) {
                 if (videoList.isEmpty() || idx !in 0 until videoList.size) return
                 curIdx = idx
@@ -983,7 +982,6 @@ jobs:
                     }
                 }.show()
             }
-
             private fun showMenuOptions(v: View) {
                 val p = PopupMenu(this, v)
                 p.menu.add(0, 1, 0, "🎵 Save MP3")
