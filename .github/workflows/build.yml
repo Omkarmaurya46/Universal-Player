@@ -76,8 +76,8 @@ jobs:
                 applicationId "com.example.universalplayer"
                 minSdk 26
                 targetSdk 34
-                versionCode 21
-                versionName "21.0"
+                versionCode 22
+                versionName "22.0"
             }
 
             buildTypes {
@@ -102,7 +102,6 @@ jobs:
             implementation 'androidx.media3:media3-exoplayer:1.2.1'
             implementation 'androidx.media3:media3-ui:1.2.1'
             implementation 'androidx.media3:media3-common:1.2.1'
-            implementation 'androidx.media3:media3-datasource:1.2.1'
             implementation 'androidx.media3:media3-extractor:1.2.1'
         }
         EOF
@@ -660,7 +659,6 @@ jobs:
                 return if (hrs > 0) String.format("%02d:%02d:%02d", hrs, mins, secs)
                 else String.format("%02d:%02d", mins, secs)
             }
-
             private fun updateView() {
                 currentDisplayList.clear()
                 val binSet = prefs.getStringSet("bin_items", emptySet()) ?: emptySet()
@@ -789,6 +787,7 @@ jobs:
             }
         }
         EOF
+
         cat << 'EOF' > app/src/main/java/com/example/universalplayer/PlayerActivity.kt
         package com.example.universalplayer
         import android.app.PictureInPictureParams
@@ -805,12 +804,8 @@ jobs:
         import androidx.appcompat.app.AlertDialog
         import androidx.appcompat.app.AppCompatActivity
         import androidx.media3.common.*
-        import androidx.media3.datasource.ContentDataSource
-        import androidx.media3.datasource.DataSource
-        import androidx.media3.datasource.DefaultDataSource
         import androidx.media3.exoplayer.DefaultRenderersFactory
         import androidx.media3.exoplayer.ExoPlayer
-        import androidx.media3.exoplayer.source.ProgressiveMediaSource
         import androidx.media3.extractor.DefaultExtractorsFactory
         import androidx.media3.extractor.mp4.Mp4Extractor
         import androidx.media3.extractor.ts.DefaultTsPayloadReaderFactory
@@ -895,7 +890,6 @@ jobs:
                 setupGestures()
                 playVideoAtIndex(curIdx)
             }
-
             private fun playVideoAtIndex(idx: Int) {
                 if (videoList.isEmpty() || idx !in 0 until videoList.size) return
                 curIdx = idx
@@ -982,6 +976,7 @@ jobs:
                     }
                 }.show()
             }
+
             private fun showMenuOptions(v: View) {
                 val p = PopupMenu(this, v)
                 p.menu.add(0, 1, 0, "🎵 Save MP3")
@@ -1061,10 +1056,10 @@ jobs:
                     .setMp4ExtractorFlags(Mp4Extractor.FLAG_READ_SAMPLE_INDEX_DATA)
                     .setTsExtractorFlags(DefaultTsPayloadReaderFactory.FLAG_ALLOW_NON_IDR_KEYFRAMES)
 
-                val dataSourceFactory: DataSource.Factory = DefaultDataSource.Factory(this, DataSource.Factory { ContentDataSource(this) })
-                val mediaSource = ProgressiveMediaSource.Factory(dataSourceFactory, ef).createMediaSource(MediaItem.fromUri(uri))
+                player = ExoPlayer.Builder(this, rf)
+                    .setMediaSourceFactory(androidx.media3.exoplayer.source.DefaultMediaSourceFactory(this, ef))
+                    .build()
 
-                player = ExoPlayer.Builder(this, rf).build()
                 pv.player = player
                 player?.addListener(object : Player.Listener {
                     override fun onPlaybackStateChanged(s: Int) {
@@ -1078,7 +1073,7 @@ jobs:
                         Toast.makeText(this@PlayerActivity, "Play Error: ${error.message}", Toast.LENGTH_SHORT).show()
                     }
                 })
-                player?.setMediaSource(mediaSource)
+                player?.setMediaItem(MediaItem.fromUri(uri))
                 player?.prepare(); player?.play()
                 btnPlay.text = "⏸"
             }
